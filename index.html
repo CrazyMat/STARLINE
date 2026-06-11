@@ -1,0 +1,3016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARLINE: Cosmogenesis</title>
+<style>
+:root{
+  --bg0:#05070f; --bg1:#0a0e1c;
+  --accent:#8f7bff; --accent2:#5fd4c0;
+  --ink:#d7dcec; --dim:#8b93ad; --faint:#5a6280;
+  --glass:rgba(13,17,30,0.62); --line:rgba(255,255,255,0.09);
+  --eg:#ffa94d; --mc:#6cc7ff; --mm:#ffd166; --danger:#ff5470;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; overflow:hidden;}
+body{
+  background:var(--bg0); color:var(--ink);
+  font:13px/1.45 "Segoe UI",system-ui,-apple-system,sans-serif;
+  background-image:radial-gradient(1200px 800px at 70% -10%, rgba(80,60,160,0.12), transparent 60%),
+                   radial-gradient(900px 700px at 10% 110%, rgba(40,90,120,0.10), transparent 60%);
+}
+#app{
+  display:grid; height:100vh; gap:10px; padding:10px;
+  grid-template-columns:292px 1fr 324px;
+  grid-template-rows:1fr 128px;
+}
+.panel{
+  background:var(--glass); border:1px solid var(--line); border-radius:14px;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  padding:12px; overflow-y:auto; overflow-x:hidden;
+  display:flex; flex-direction:column; gap:10px;
+}
+.panel::-webkit-scrollbar{width:8px;}
+.panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.10); border-radius:4px;}
+#center{
+  position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  background:#000;
+}
+#cv{position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair;}
+#phaseChip{
+  position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  background:rgba(8,10,20,0.55); border:1px solid var(--line); border-radius:999px;
+  padding:5px 16px; font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--dim); backdrop-filter:blur(8px); pointer-events:none; white-space:nowrap;
+}
+#phaseChip b{color:var(--accent); font-weight:600;}
+#banner{
+  position:absolute; inset:0; display:flex; flex-direction:column; gap:6px;
+  align-items:center; justify-content:center; pointer-events:none;
+  opacity:0; transition:opacity 1s ease; text-align:center;
+}
+#banner.show{opacity:1;}
+#banner .bgen{font-size:11px; letter-spacing:5px; color:var(--dim); text-transform:uppercase;}
+#banner .bname{
+  font-size:34px; font-weight:200; letter-spacing:6px; text-transform:uppercase;
+  background:linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 40px rgba(140,120,255,0.25);
+}
+#feedWrap{
+  grid-column:1 / -1; background:var(--glass); border:1px solid var(--line);
+  border-radius:14px; backdrop-filter:blur(14px); padding:10px 16px; overflow:hidden;
+}
+#feed{display:flex; flex-direction:column; gap:3px;}
+.ev{font-size:12px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.ev .ee{color:var(--faint); font-size:10px; margin-right:8px; font-variant-numeric:tabular-nums;}
+.ev .dot{display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; vertical-align:1px;}
+.ev:nth-child(1){opacity:1;} .ev:nth-child(2){opacity:.85;} .ev:nth-child(3){opacity:.7;}
+.ev:nth-child(4){opacity:.55;} .ev:nth-child(5){opacity:.42;} .ev:nth-child(6){opacity:.3;}
+.dot.stellar{background:#ffd166;} .dot.metal{background:#ffa94d;} .dot.civ{background:#5fd4c0;}
+.dot.bh{background:#b48cff;} .dot.crisis{background:#ff5470;} .dot.action{background:#6cc7ff;}
+.logo{
+  font-size:21px; font-weight:300; letter-spacing:7px; text-align:center; margin-top:2px;
+  background:linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.sub{font-size:9px; letter-spacing:6px; text-align:center; color:var(--faint); text-transform:uppercase; margin-top:-6px;}
+.card{
+  background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px;
+  padding:10px; display:flex; flex-direction:column; gap:6px; flex-shrink:0;
+}
+.card.grow{flex:1; min-height:80px; overflow-y:auto;}
+.card.grow::-webkit-scrollbar{width:6px;}
+.card.grow::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.10); border-radius:3px;}
+.cap{font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--faint); margin-bottom:2px;}
+.uni-name{
+  font-size:17px; font-weight:500; letter-spacing:0.5px;
+  background:linear-gradient(90deg, var(--ink), var(--accent));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.kv{display:flex; justify-content:space-between; font-size:12px; color:var(--dim);}
+.kv b{color:var(--ink); font-weight:500;}
+.mono{font-family:Consolas,monospace; font-size:11px; color:var(--accent2) !important;}
+.barlab{display:flex; justify-content:space-between; font-size:10.5px; color:var(--dim); margin-top:3px;}
+.barlab span:last-child{color:var(--ink); font-variant-numeric:tabular-nums;}
+.bar{height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;}
+.fill{height:100%; border-radius:4px; transition:width .5s ease; width:0%;}
+.fill.eg{background:linear-gradient(90deg,#b35c1e,var(--eg));}
+.fill.mc{background:linear-gradient(90deg,#1e5c8a,var(--mc));}
+.fill.mm{background:linear-gradient(90deg,#9a7818,var(--mm));}
+.fill.dp{background:linear-gradient(90deg,#7a2040,var(--danger));}
+.chips{display:flex; flex-wrap:wrap; gap:5px;}
+.chip{
+  font-size:10px; padding:3px 9px; border-radius:999px; letter-spacing:0.4px;
+  border:1px solid rgba(95,212,192,0.35); color:var(--accent2); background:rgba(95,212,192,0.07);
+}
+.chip.scar{border-color:rgba(255,84,112,0.4); color:var(--danger); background:rgba(255,84,112,0.07);}
+.chip.none{border-color:var(--line); color:var(--faint); background:transparent;}
+.lin{
+  display:flex; gap:8px; align-items:flex-start; padding:7px 4px;
+  border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;
+}
+.lin:last-child{border-bottom:none;}
+.lin .sw{width:10px; height:10px; border-radius:3px; margin-top:2px; flex-shrink:0; box-shadow:0 0 8px currentColor;}
+.lin .lt{color:var(--dim); line-height:1.4;}
+.lin .lt b{color:var(--ink); font-weight:500;}
+.lin .lt .lg{color:var(--accent2);}
+.lin .lt .ls{color:var(--danger);}
+button{font:inherit; color:inherit;}
+.ghostbtn{
+  background:transparent; border:1px solid var(--line); border-radius:10px; padding:8px;
+  color:var(--dim); cursor:pointer; letter-spacing:1px; font-size:11px; transition:all .2s; flex-shrink:0;
+}
+.ghostbtn:hover{border-color:var(--danger); color:var(--danger);}
+.agrid{display:grid; grid-template-columns:1fr 1fr; gap:7px;}
+.abtn{
+  position:relative; text-align:left; padding:7px 9px; border-radius:9px; cursor:pointer;
+  background:linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
+  border:1px solid rgba(255,255,255,0.12); transition:border-color .15s, transform .1s;
+  display:flex; flex-direction:column; gap:2px;
+}
+.abtn:hover:not(:disabled){border-color:var(--accent); transform:translateY(-1px);}
+.abtn:active:not(:disabled){transform:translateY(0);}
+.abtn:disabled{opacity:0.35; cursor:not-allowed;}
+.abtn .an{font-size:12px; font-weight:600; display:flex; justify-content:space-between; align-items:center;}
+.abtn .cost{font-size:9.5px; color:var(--eg); font-weight:500; background:rgba(255,169,77,0.1); padding:1px 6px; border-radius:99px;}
+.abtn .ad{font-size:9.5px; color:var(--faint); line-height:1.3;}
+.hint{font-size:10.5px; color:var(--faint); min-height:14px; font-style:italic;}
+.primary{
+  width:100%; padding:11px; border:none; border-radius:10px; cursor:pointer;
+  background:linear-gradient(90deg, var(--accent), var(--accent2)); color:#0a0c16;
+  font-weight:700; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  transition:filter .15s, opacity .2s;
+}
+.primary:hover:not(:disabled){filter:brightness(1.15);}
+.primary:disabled{opacity:0.35; cursor:not-allowed;}
+.stat{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--dim);}
+.stat .sl{width:86px; flex-shrink:0;}
+.stat .sb{flex:1; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden;}
+.stat .sf{height:100%; border-radius:2px; background:var(--accent);}
+.stat .sv{width:34px; text-align:right; color:var(--ink); font-variant-numeric:tabular-nums; flex-shrink:0;}
+.empty{color:var(--faint); font-size:11.5px; font-style:italic; padding:6px 0;}
+.subcard{
+  border:1px solid var(--line); border-radius:8px; padding:8px; margin-top:4px;
+  background:rgba(0,0,0,0.25); display:flex; flex-direction:column; gap:4px;
+}
+.subcard .sct{font-size:12px; font-weight:600;}
+.subcard .scs{font-size:10px; color:var(--dim);}
+.tag{font-size:9px; color:var(--faint); font-style:italic;}
+.bhclass{font-size:10px; letter-spacing:1px; text-transform:uppercase; font-weight:600;}
+.cQuiet{color:#9db4ff;} .cDevourer{color:#ff6a4d;} .cCivilized{color:#5fd4c0;}
+.cAnomalous{color:#e06aff;} .cResidual{color:#a8a8b8;}
+#modal{
+  position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+  background:rgba(3,4,10,0.78); backdrop-filter:blur(10px); opacity:1; transition:opacity .6s;
+}
+#modal.hidden{display:none;}
+.mcard{
+  width:min(980px, 95vw); max-height:93vh; overflow-y:auto;
+  background:rgba(12,14,26,0.92); border:1px solid rgba(255,255,255,0.13); border-radius:18px;
+  padding:22px; display:flex; flex-direction:column; gap:14px;
+  box-shadow:0 0 90px rgba(100,80,220,0.18);
+}
+.mcard::-webkit-scrollbar{width:8px;}
+.mcard::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12); border-radius:4px;}
+.mhead{display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap;}
+#mMode{
+  font-size:30px; font-weight:200; letter-spacing:4px; text-transform:uppercase;
+  background:linear-gradient(90deg, var(--danger), var(--accent));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+#mCause{color:var(--dim); font-size:12.5px; max-width:430px; margin-top:4px;}
+.scorerow{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+.score{
+  border:1px solid var(--line); border-radius:10px; padding:8px 12px; min-width:78px;
+  background:rgba(255,255,255,0.03); text-align:center;
+}
+.score .sn{font-size:20px; font-weight:300; color:var(--ink);}
+.score .st{font-size:8.5px; letter-spacing:1.5px; color:var(--faint); text-transform:uppercase;}
+#mLedger{display:grid; grid-template-columns:repeat(auto-fill,minmax(218px,1fr)); gap:10px;}
+.seed{
+  border:1px solid var(--line); border-radius:12px; padding:11px; cursor:pointer;
+  background:rgba(255,255,255,0.03); transition:all .15s; display:flex; flex-direction:column; gap:5px;
+}
+.seed:hover{border-color:rgba(255,255,255,0.3);}
+.seed.sel{border-color:var(--accent); box-shadow:0 0 22px rgba(140,120,255,0.25); background:rgba(140,120,255,0.06);}
+.seed .sn2{font-size:13px; font-weight:600;}
+.seed .srow{display:flex; justify-content:space-between; font-size:10.5px; color:var(--dim);}
+.seed .srow b{color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums;}
+.seed .bias{font-size:9.5px; color:var(--faint); line-height:1.35; border-top:1px solid rgba(255,255,255,0.06); padding-top:5px; margin-top:2px;}
+.preview{
+  border:1px solid var(--line); border-radius:12px; padding:12px;
+  background:rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:8px;
+}
+.pgrid{display:grid; grid-template-columns:1fr 1fr; gap:4px 22px;}
+.prow{display:flex; align-items:center; gap:7px; font-size:10px; color:var(--dim);}
+.prow .pl{width:88px; flex-shrink:0;}
+.prow .pb{flex:1; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; position:relative; overflow:hidden;}
+.prow .pf{position:absolute; top:0; left:0; height:100%; border-radius:2px;}
+.prow .arrow{width:14px; text-align:center; flex-shrink:0;}
+.up{color:var(--accent2);} .dn{color:var(--danger);} .fl{color:var(--faint);}
+.pswatches{display:flex; gap:6px; align-items:center;}
+.pswatches .psw{width:20px; height:20px; border-radius:6px; border:1px solid rgba(255,255,255,0.15);}
+.pname{font-size:16px; font-weight:500; letter-spacing:0.5px;}
+#viewControls{position:absolute; top:10px; left:12px; display:flex; gap:8px; align-items:center; z-index:6;}
+.ovbtn{
+  background:rgba(8,10,20,0.62); border:1px solid var(--line); color:var(--ink);
+  border-radius:999px; padding:6px 14px; cursor:pointer; font-size:11px; letter-spacing:1px;
+  backdrop-filter:blur(8px); transition:border-color .15s;
+}
+.ovbtn:hover{border-color:var(--accent);}
+#viewLabel{
+  font-size:10px; letter-spacing:2px; color:var(--dim); text-transform:uppercase;
+  background:rgba(8,10,20,0.45); padding:5px 12px; border-radius:999px; border:1px solid var(--line);
+}
+#storyPanel{
+  position:absolute; left:12px; bottom:12px; max-width:390px; z-index:6;
+  background:rgba(8,10,20,0.62); border:1px solid var(--line); border-radius:12px;
+  padding:10px 14px; backdrop-filter:blur(10px);
+}
+#storyText{font-size:12px; color:var(--ink); line-height:1.55;}
+#zoomBtns{display:flex; flex-direction:column; gap:5px; margin-top:6px;}
+.zbtn{
+  width:100%; padding:8px; border-radius:9px; cursor:pointer; letter-spacing:0.8px; font-size:11.5px;
+  border:1px solid rgba(255,255,255,0.14);
+  background:linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  transition:border-color .15s, transform .1s;
+}
+.zbtn:hover:not(:disabled){border-color:var(--accent); transform:translateY(-1px);}
+.zbtn:disabled{opacity:0.35; cursor:not-allowed;}
+.zbtn.life{border-color:rgba(95,212,192,0.32); color:var(--accent2);}
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="left" class="panel">
+    <div>
+      <h1 class="logo">STARLINE</h1>
+      <div class="sub">Cosmogenesis</div>
+    </div>
+    <div class="card">
+      <div id="uniName" class="uni-name">—</div>
+      <div class="kv"><span>Generation</span><b id="genNum">—</b></div>
+      <div class="kv"><span>Seed</span><b id="seedStr" class="mono">—</b></div>
+      <div class="kv"><span>Eon</span><b id="eonNum">—</b></div>
+      <div class="kv"><span>Phase</span><b id="phaseTxt">—</b></div>
+      <div class="kv"><span>Death risk</span><b id="riskTxt">—</b></div>
+      <div class="barlab"><span>Death Pressure</span><span id="dpVal">0</span></div>
+      <div class="bar"><div id="dpBar" class="fill dp"></div></div>
+    </div>
+    <div class="card">
+      <div class="cap">Lineage Resources</div>
+      <div class="barlab"><span>EG · Entropy Gradient</span><span id="egVal">0</span></div>
+      <div class="bar"><div id="egBar" class="fill eg"></div></div>
+      <div class="barlab"><span>MC · Matter Coherence</span><span id="mcVal">0</span></div>
+      <div class="bar"><div id="mcBar" class="fill mc"></div></div>
+      <div class="barlab"><span>MM · Metallicity Memory</span><span id="mmVal">0</span></div>
+      <div class="bar"><div id="mmBar" class="fill mm"></div></div>
+    </div>
+    <div class="card">
+      <div class="cap">Lineage Traits &amp; Scars</div>
+      <div id="traits" class="chips"></div>
+    </div>
+    <div class="card grow">
+      <div class="cap">Lineage Record</div>
+      <div id="lineage"></div>
+    </div>
+    <button id="newLineage" class="ghostbtn">✦ NEW LINEAGE</button>
+  </aside>
+
+  <main id="center">
+    <canvas id="cv"></canvas>
+    <div id="phaseChip">EON <b id="chipEon">0</b> · <b id="chipPhase">Genesis</b></div>
+    <div id="banner"><div class="bgen" id="bGen"></div><div class="bname" id="bName"></div></div>
+    <div id="viewControls" class="hidden">
+      <button id="backBtn" class="ovbtn">⟵ Cosmic Web</button>
+      <span id="viewLabel"></span>
+    </div>
+    <div id="storyPanel" class="hidden">
+      <div class="cap" id="storyTitle"></div>
+      <div id="storyText"></div>
+    </div>
+  </main>
+
+  <aside id="right" class="panel">
+    <div class="card grow" style="flex:1.2;">
+      <div class="cap">Selected Region</div>
+      <div id="regionInfo"><div class="empty">Click a node on the cosmic web to select a region.</div></div>
+      <div id="zoomBtns">
+        <button id="zoomBtn" class="zbtn">⌖ Zoom Into Region</button>
+        <button id="lifeBtn" class="zbtn life hidden">❋ Inspect Life Web</button>
+        <button id="backBtn2" class="zbtn hidden">↩ Return to Cosmic Web</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="cap">Cosmic Verbs</div>
+      <div id="actions" class="agrid"></div>
+      <div id="actionHint" class="hint"></div>
+      <button id="endEon" class="primary">End Eon ⟶</button>
+    </div>
+  </aside>
+
+  <footer id="feedWrap"><div id="feed"></div></footer>
+</div>
+
+<div id="modal" class="hidden">
+  <div class="mcard">
+    <div class="mhead">
+      <div>
+        <div class="cap">Universe death · Generation <span id="mGen"></span> · <span id="mUni"></span></div>
+        <h2 id="mMode"></h2>
+        <p id="mCause"></p>
+      </div>
+      <div id="mScores" class="scorerow"></div>
+    </div>
+    <div>
+      <div class="cap">Seed Ledger — choose the gamete of the next cosmos</div>
+      <div id="mLedger"></div>
+    </div>
+    <div id="mPreview" class="preview"><div class="empty">Select a seed from the ledger to preview the successor universe.</div></div>
+    <button id="mContinue" class="primary" disabled>Continue Successor ⟶</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   STARLINE: Cosmogenesis — a universe-breeding simulation
+   ============================================================ */
+
+/* ---------- RNG & math utilities ---------- */
+function hashString(str){
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function clamp(v, min, max){
+  if (isNaN(v)) return min;
+  return v < min ? min : (v > max ? max : v);
+}
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+class RNG {
+  constructor(seed){ this.next = mulberry32(seed >>> 0); }
+  range(min, max){ return min + this.next() * (max - min); }
+  int(min, max){ return Math.floor(this.range(min, max + 1)); }
+  choice(arr){ return arr[Math.floor(this.next() * arr.length) % arr.length]; }
+  chance(p){ return this.next() < p; }
+}
+function rngRange(rng, min, max){ return rng.range(min, max); }
+function rngChoice(rng, arr){ return rng.choice(arr); }
+function avgOf(arr, key){
+  if (!arr.length) return 0;
+  let s = 0;
+  for (const o of arr) s += o[key];
+  return s / arr.length;
+}
+function hsl(h, s, l){ return 'hsl(' + (((h % 360) + 360) % 360) + ',' + s + '%,' + l + '%)'; }
+function hsla(h, s, l, a){ return 'hsla(' + (((h % 360) + 360) % 360) + ',' + s + '%,' + l + '%,' + a + ')'; }
+
+/* ---------- Data tables ---------- */
+const CKEYS = ['gravity','expansion','fusion','chemistry','instability','blackHoleFertility','lifeBias','entropyRichness'];
+const CLABEL = {gravity:'Gravity', expansion:'Expansion', fusion:'Fusion', chemistry:'Chemistry',
+  instability:'Instability', blackHoleFertility:'BH Fertility', lifeBias:'Life Bias', entropyRichness:'Entropy Rich.'};
+
+const NAME_ADJ = ['Cold','Pale','Dark','Black','Blue','Golden','Silent','Silver','Hollow','Red','Violet','Iron','Crimson','Dim','White','Emerald','Teal','Amber','Ashen','Deep'];
+const NAME_MAT = ['Violet','Iron','Glass','Gravity','Honey','Pollen','Ash','Maw','Ember','Wound','Star','Salt','Vapor','Coral','Thorn','Frost','Echo','Pearl'];
+const NAME_STRUCT = ['Lattice','Orchard','Monastery','Choir','Cosmos','Cathedral','Nursery','Garden','Web','Canopy','Crucible','Spire','Reef','Atlas','Loom','Verge'];
+const WORD_HUES = {Violet:275, Iron:24, Glass:192, Gravity:230, Honey:43, Pollen:95, Ash:218, Maw:12,
+  Ember:18, Wound:340, Star:52, Salt:200, Vapor:185, Coral:8, Thorn:120, Frost:198, Echo:260, Pearl:70,
+  Red:357, Blue:215, Golden:45, Silver:206, Crimson:345, Cold:210, Dark:280, Black:285, Pale:208,
+  Silent:202, Hollow:55, White:60, Emerald:140, Teal:177, Amber:40, Ashen:216, Dim:232, Deep:250};
+
+const REGION_PRE = ['Pale','Ash','Glass','Ember','Null','Iron','Violet','Dim','Salt','Reed','Thorn','Veil','Hush','Tide','Wren','Sable'];
+const REGION_CORE = ['Veil','Hollow','Reach','Knot','Nursery','Shoal','Garden','Womb','Spine','Field','Run','Choir','Shelf','Gate','Spur','Cradle','Lace','Reed'];
+
+const BH_ADJ = ['Howling','Silent','Pale','Hungry','Patient','Glass','Sable','Mourning','Gilded','Hollow','Quiet','Burning','Sunken','Veiled'];
+const BH_NOUN = ['Maw','Throat','Eye','Drain','Door','Well','Mouth','Crown','Anchor','Bell','Pit','Lantern','Hinge','Vault'];
+
+const CIV_ADJ = ['Silent','Glass','Ember','Pale','Veiled','Patient','Luminous','Rooted','Tideborn','Hollow','Whispering','Sable'];
+const CIV_NOUN = ['Oort','Choir','Gardeners','Weavers','Shoal','Synod','Drift','Lattice','Tenders','Swarm','Accord','Kelp'];
+const CIV_TYPES = ['Star Shepherds','Black-Hole Cult','Entropy Miners','Silent Gardeners'];
+
+const SEED_BIAS = {
+  'Quiet Seed':     {gravity:0.45, expansion:0.55, fusion:0.50, chemistry:0.50, instability:0.25, blackHoleFertility:0.45, lifeBias:0.50, entropyRichness:0.55},
+  'Devourer':       {gravity:0.80, expansion:0.30, fusion:0.60, chemistry:0.40, instability:0.70, blackHoleFertility:0.85, lifeBias:0.30, entropyRichness:0.60},
+  'Civilized Seed': {gravity:0.50, expansion:0.50, fusion:0.55, chemistry:0.75, instability:0.40, blackHoleFertility:0.50, lifeBias:0.80, entropyRichness:0.55},
+  'Anomalous Seed': {gravity:0.60, expansion:0.60, fusion:0.50, chemistry:0.55, instability:0.80, blackHoleFertility:0.60, lifeBias:0.45, entropyRichness:0.65},
+  'Residual Spark': {gravity:0.40, expansion:0.60, fusion:0.35, chemistry:0.35, instability:0.50, blackHoleFertility:0.30, lifeBias:0.30, entropyRichness:0.35}
+};
+const CLASS_INFO = {
+  'Quiet Seed':     {css:'cQuiet',     bias:'Stable successor · coherence up · mutation down'},
+  'Devourer':       {css:'cDevourer',  bias:'Gravity up · BH fertility up · instability up · coherence down'},
+  'Civilized Seed': {css:'cCivilized', bias:'Life bias up · chemistry up · Agenda Residue risk'},
+  'Anomalous Seed': {css:'cAnomalous', bias:'Mutation up · instability up · rare bonuses'},
+  'Residual Spark': {css:'cResidual',  bias:'Weak ember · unstable constants · lower starting resources'}
+};
+const CLASS_HUES = {
+  'Quiet Seed': [262, 218, 205],
+  'Devourer': [356, 18, 28],
+  'Civilized Seed': [172, 46, 190],
+  'Anomalous Seed': [302, 132, 268],
+  'Residual Spark': [212, 38, 222]
+};
+const TRAIT_DESC = {
+  'Metal Memory':'Successor universes begin metal-rich.',
+  'Quiet Fidelity':'New black holes form with higher fidelity.',
+  'Red Dwarf Patience':'Stars age slowly; old stars steady coherence.',
+  'Supernova Literacy':'Supernovae yield more metals and entropy.',
+  'Civilized Archive':'Civilizations arise more readily, better aligned.',
+  'Entropy Discipline':'Passive EG income improved each eon.',
+  'Vacuum Scar':'Death pressure seeps in; instability drifts upward.',
+  'Agenda Residue':'Civilizations carry hidden agendas and BH hunger.',
+  'Maw Hunger':'Black holes feed faster and shed fidelity.',
+  'Sterile Drift':'Life arises reluctantly in this lineage.',
+  'Monoculture Brittleness':'Low diversity; instability starts higher.'
+};
+const SCARS_LIST = ['Vacuum Scar','Agenda Residue','Maw Hunger','Sterile Drift','Monoculture Brittleness'];
+
+const DEATH_INFO = {
+  'Heat Death':     {cause:'Entropy gradients exhausted themselves. The last free energy dissipated, and the universe cooled into perfect, fertile stillness.'},
+  'Big Crunch':     {cause:'Gravity outpaced expansion. Filaments folded inward and the cosmic web collapsed into its own seed-wells.'},
+  'Vacuum Rupture': {cause:'Contaminated instability tore the vacuum state. Reality decayed mid-sentence, mutating everything it carried.'},
+  'Sterile Fadeout':{cause:'No viable seeds matured. Star formation guttered out, and the lineage thinned to a residual spark.'}
+};
+
+/* ---------- Global game state ---------- */
+const G = {
+  universe: null,
+  generation: 0,
+  lineage: [],
+  traits: [],
+  scars: [],
+  selectedId: null,
+  hoverId: null,
+  feed: [],
+  rng: null,          // simulation stream for current universe
+  over: false,        // death modal flow active
+  dying: false,       // death animation playing
+  pendingPlan: null,
+  pendingSeedIdx: -1,
+  deathInfo: null,
+  newLineageArmed: false
+};
+function hasTrait(t){ return G.traits.indexOf(t) !== -1; }
+function hasScar(s){ return G.scars.indexOf(s) !== -1; }
+
+/* ---------- Event feed ---------- */
+function pushEvent(text, kind){
+  G.feed.unshift({text: text, kind: kind || 'crisis', eon: G.universe ? G.universe.eon : 0});
+  if (G.feed.length > 40) G.feed.length = 40;
+  updateFeed();
+}
+function cooldownEvent(id, gap, text, kind){
+  const u = G.universe;
+  if (!u) return;
+  const last = u.evCD[id];
+  if (last !== undefined && u.eon - last < gap) return;
+  u.evCD[id] = u.eon;
+  pushEvent(text, kind);
+}
+
+/* ---------- Name generation ---------- */
+function genUniverseName(rng){
+  const adj = rng.choice(NAME_ADJ);
+  let mat = rng.choice(NAME_MAT);
+  let guard = 0;
+  while (mat === adj && guard++ < 8) mat = rng.choice(NAME_MAT);
+  const struct = rng.choice(NAME_STRUCT);
+  if (rng.chance(0.3)) return adj + ' ' + struct;
+  return adj + ' ' + mat + ' ' + struct;
+}
+function hueFromName(name){
+  const words = name.split(' ');
+  for (const w of words){
+    if (WORD_HUES[w] !== undefined) return WORD_HUES[w];
+  }
+  return null;
+}
+function genRegionName(rng, used){
+  for (let i = 0; i < 40; i++){
+    let n;
+    if (rng.chance(0.35)) n = rng.choice(REGION_CORE);
+    else n = rng.choice(REGION_PRE) + ' ' + rng.choice(REGION_CORE);
+    if (!used.has(n)){ used.add(n); return n; }
+  }
+  return 'Sector ' + Math.floor(rng.range(100, 999));
+}
+function genBHName(rng){
+  return 'The ' + rng.choice(BH_ADJ) + ' ' + rng.choice(BH_NOUN);
+}
+function genCivName(rng){
+  return 'The ' + rng.choice(CIV_ADJ) + ' ' + rng.choice(CIV_NOUN);
+}
+
+/* ---------- Palette generation ---------- */
+function genPalette(rng, constants, seedClass, name, deathMode){
+  let hue = rng.choice(CLASS_HUES[seedClass] || CLASS_HUES['Quiet Seed']);
+  const wh = hueFromName(name);
+  if (wh !== null) hue = Math.round(lerp(hue, wh, 0.45));
+  if (deathMode === 'Heat Death') hue = Math.round(lerp(hue, 222, 0.4));
+  if (deathMode === 'Vacuum Rupture') hue = (hue + 85) % 360;
+  const h2 = (hue + 35 + rng.range(0, 55)) % 360;
+  const h3 = (hue + 295 + rng.range(0, 45)) % 360;
+  const sat = Math.round(50 + constants.chemistry * 30);
+  return {
+    hue: hue,
+    bg0: hsl(hue, 38, 4), bg1: hsl((hue + 24) % 360, 42, 8),
+    nebula: [hsla(hue, sat, 42, 0.14), hsla(h2, sat, 46, 0.11), hsla(h3, 62, 50, 0.09)],
+    star: hsl((hue + 18) % 360, 32, 84),
+    filament: {h: hue, s: 70, l: 70},
+    accent: hsl(hue, 85, 68),
+    accent2: hsl(h2, 72, 62),
+    ring: hsl(h3, 90, 66),
+    glow: hsla(hue, 80, 65, 0.5)
+  };
+}
+function applyPalette(p){
+  const rs = document.documentElement.style;
+  rs.setProperty('--accent', p.accent);
+  rs.setProperty('--accent2', p.accent2);
+  rs.setProperty('--bg0', p.bg0);
+  rs.setProperty('--bg1', p.bg1);
+}
+
+/* ---------- Constants generation ---------- */
+function freshConstants(crng){
+  const c = {};
+  for (const k of CKEYS) c[k] = clamp(crng.range(0.18, 0.82), 0.02, 0.98);
+  return c;
+}
+function successorConstants(crng, parentConstants, seed, deathMode, scars){
+  const bias = SEED_BIAS[seed.className] || SEED_BIAS['Residual Spark'];
+  let mut = 1;
+  if (deathMode === 'Heat Death') mut *= 0.55;
+  if (deathMode === 'Vacuum Rupture') mut *= 1.8;
+  if (seed.className === 'Anomalous Seed') mut *= 1.4;
+  if (seed.className === 'Residual Spark') mut *= 1.45;
+  mut *= 0.65 + seed.mutationPressure * 0.8;
+  mut = clamp(mut, 0.15, 2.2);
+  const c = {};
+  for (const k of CKEYS){
+    const mutation = 0.5 + (crng.next() - 0.5) * mut;
+    c[k] = parentConstants[k] * 0.35 + bias[k] * 0.45 + mutation * 0.20;
+  }
+  if (deathMode === 'Big Crunch'){ c.gravity += 0.10; c.blackHoleFertility += 0.10; c.instability += 0.07; }
+  if (deathMode === 'Heat Death'){ c.instability -= 0.05; }
+  if (deathMode === 'Sterile Fadeout'){
+    for (const k of CKEYS) c[k] += (crng.next() - 0.5) * 0.18;
+  }
+  if (scars.indexOf('Vacuum Scar') !== -1) c.instability += 0.05;
+  if (scars.indexOf('Sterile Drift') !== -1) c.lifeBias -= 0.08;
+  for (const k of CKEYS) c[k] = clamp(c[k], 0.02, 0.98);
+  return c;
+}
+
+/* ---------- Universe planning & instantiation ---------- */
+function planUniverse(seedNum, parentUniverse, seedBH, deathMode){
+  const crng = new RNG(seedNum ^ 0x5bf03635);
+  const constants = parentUniverse
+    ? successorConstants(crng, parentUniverse.constants, seedBH, deathMode, G.scars)
+    : freshConstants(crng);
+  const nrng = new RNG(seedNum ^ 0x02545f49);
+  const name = genUniverseName(nrng);
+  const prng = new RNG(seedNum ^ 0x1234abcd);
+  const seedClass = seedBH ? seedBH.className : 'Quiet Seed';
+  const palette = genPalette(prng, constants, seedClass, name, deathMode);
+  return {seedNum: seedNum, constants: constants, name: name, palette: palette,
+          seedClass: seedClass, deathMode: deathMode || null};
+}
+function makeRegion(id, name, x, y, rng, c, startMM){
+  const r = {
+    id: id, name: name, x: x, y: y, neighbors: [],
+    gas: clamp(rng.range(30, 80) * (0.72 + c.entropyRichness * 0.55), 5, 130),
+    stars: rng.range(2, 12),
+    massiveStars: rng.range(0, 3),
+    oldStars: rng.range(0, 6),
+    exoticStars: rng.chance(0.05 + c.instability * 0.08) ? 1 : 0,
+    metals: rng.range(0, 8) + startMM * 0.2,
+    radiation: rng.range(0, 8),
+    instability: clamp(rng.range(10, 32) + c.instability * 22 + (hasScar('Monoculture Brittleness') ? 5 : 0), 0, 100),
+    blackHolePotential: clamp(rng.range(4, 28) + c.gravity * 16, 0, 100),
+    shield: 0,
+    civilization: null,
+    blackHole: null,
+    actionMemory: {compress: 0, disperse: 0, enrich: 0, shield: 0, collapse: 0, groom: 0, dispersedCooldown: 0},
+    flags: {},
+    vis: {phase: rng.range(0, Math.PI * 2), speed: rng.range(0.6, 1.4),
+          spark: []}
+  };
+  const ns = rng.int(3, 6);
+  for (let i = 0; i < ns; i++){
+    r.vis.spark.push({a: rng.range(0, Math.PI * 2), d: rng.range(0.5, 1.3),
+                      s: rng.range(0.6, 1.6), ph: rng.range(0, Math.PI * 2), dir: rng.chance(0.5) ? 1 : -1});
+  }
+  return r;
+}
+function instantiateUniverse(plan){
+  const rng = new RNG(plan.seedNum);
+  const c = plan.constants;
+  const spark = plan.seedClass === 'Residual Spark';
+  const startEG = clamp(50 + c.entropyRichness * 28 - (spark ? 16 : 0), 10, 100);
+  const startMC = clamp(55 + (1 - c.instability) * 25 - (spark ? 10 : 0), 10, 100);
+  const startMM = clamp(5 + c.chemistry * 12 + (hasTrait('Metal Memory') ? 12 : 0), 0, 100);
+
+  // --- region positions: organic radial cluster ---
+  const count = 24 + rng.int(0, 16);
+  const pts = [];
+  let attempts = 0;
+  while (pts.length < count && attempts < 6000){
+    attempts++;
+    const a = rng.range(0, Math.PI * 2);
+    const rad = Math.pow(rng.next(), 0.62) * 0.46;
+    const x = 0.5 + Math.cos(a) * rad * 1.1;
+    const y = 0.5 + Math.sin(a) * rad * 0.97;
+    if (x < 0.05 || x > 0.95 || y < 0.06 || y > 0.94) continue;
+    let ok = true;
+    for (const p of pts){
+      const dx = p.x - x, dy = p.y - y;
+      if (dx * dx + dy * dy < 0.0038){ ok = false; break; }
+    }
+    if (ok) pts.push({x: x, y: y});
+  }
+  const usedNames = new Set();
+  const regions = pts.map(function(p, i){
+    return makeRegion(i, genRegionName(rng, usedNames), p.x, p.y, rng, c, startMM);
+  });
+
+  // --- edges: connect each node to 2-4 nearest ---
+  const edgeSet = new Set();
+  const edges = [];
+  for (let i = 0; i < regions.length; i++){
+    const dists = [];
+    for (let j = 0; j < regions.length; j++){
+      if (j === i) continue;
+      const dx = regions[j].x - regions[i].x, dy = regions[j].y - regions[i].y;
+      dists.push([dx * dx + dy * dy, j]);
+    }
+    dists.sort(function(a, b){ return a[0] - b[0]; });
+    const want = 2 + (rng.chance(0.5) ? 1 : 0) + (rng.chance(0.18) ? 1 : 0);
+    for (let k = 0; k < want && k < dists.length; k++){
+      const j = dists[k][1];
+      const key = Math.min(i, j) + '-' + Math.max(i, j);
+      if (!edgeSet.has(key)){
+        edgeSet.add(key);
+        edges.push({a: Math.min(i, j), b: Math.max(i, j), bow: rng.range(-0.22, 0.22), glow: 0});
+      }
+    }
+  }
+  for (const e of edges){
+    regions[e.a].neighbors.push(e.b);
+    regions[e.b].neighbors.push(e.a);
+  }
+
+  return {
+    seed: plan.seedNum,
+    name: plan.name,
+    constants: c,
+    palette: plan.palette,
+    seedClass: plan.seedClass,
+    regions: regions,
+    edges: edges,
+    eon: 0,
+    phase: 'Genesis',
+    EG: startEG, MC: startMC, MM: startMM,
+    deathPressure: 0,
+    riskDelta: 0,
+    civAlive: 0,
+    civsEver: 0,
+    supernovae: 0,
+    maxCivTech: 0,
+    bhCounter: 0,
+    evCD: {},
+    flags: {}
+  };
+}
+
+/* ---------- Black holes ---------- */
+function updateBH(bh, u){
+  bh.fertility = clamp(bh.mass * bh.fidelity * (1 - bh.contamination) * u.constants.blackHoleFertility, 0, 1);
+  const prev = bh.className;
+  if (bh.civTouched) bh.className = 'Civilized Seed';
+  else if (bh.contamination > 0.5 || bh.mutationPressure > 0.62) bh.className = 'Anomalous Seed';
+  else if (bh.mass > 0.55 && bh.fidelity < 0.55) bh.className = 'Devourer';
+  else bh.className = 'Quiet Seed';
+  return prev !== bh.className ? prev : null;
+}
+function tagBH(bh, tag){
+  if (bh.historyTags.indexOf(tag) === -1){
+    bh.historyTags.push(tag);
+    if (bh.historyTags.length > 4) bh.historyTags.shift();
+  }
+}
+function birthBlackHole(r, how){
+  const u = G.universe, rng = G.rng;
+  const bh = {
+    id: 'bh' + (++u.bhCounter),
+    name: genBHName(rng),
+    className: 'Quiet Seed',
+    mass: clamp(0.18 + rng.range(0, 0.15) + r.massiveStars * 0.006, 0.05, 1),
+    fidelity: clamp(0.55 + rng.range(-0.1, 0.2) + (hasTrait('Quiet Fidelity') ? 0.08 : 0) - r.radiation * 0.002, 0.05, 0.98),
+    contamination: clamp(0.08 + r.radiation * 0.003 + r.instability * 0.002, 0, 0.9),
+    mutationPressure: clamp(0.2 + u.constants.instability * 0.3 + rng.range(0, 0.15), 0, 1),
+    fertility: 0, age: 0, civTouched: false,
+    historyTags: [how]
+  };
+  updateBH(bh, u);
+  r.blackHole = bh;
+  r.blackHolePotential = clamp(r.blackHolePotential - 30, 0, 100);
+  pushEvent(bh.name + ' opens in the ' + r.name + ' — ' + how + '. The lineage gains a seed.', 'bh');
+  addRipple(r, 'flash', '#ffffff');
+  return bh;
+}
+function residualSpark(){
+  return {
+    id: 'spark', name: 'Residual Spark', className: 'Residual Spark',
+    mass: 0.12, fidelity: 0.35, contamination: 0.3, mutationPressure: 0.65,
+    fertility: 0.05, age: 0, civTouched: false,
+    historyTags: ['the last warmth of a sterile cosmos']
+  };
+}
+function neighborBH(r, u){
+  for (const ni of r.neighbors){
+    const n = u.regions[ni];
+    if (n.blackHole) return n.blackHole;
+  }
+  return null;
+}
+
+/* ---------- Civilizations ---------- */
+function spawnCiv(r, u){
+  const rng = G.rng;
+  const agenda = hasScar('Agenda Residue');
+  const civ = {
+    name: genCivName(rng),
+    type: rng.choice(CIV_TYPES),
+    alignment: clamp(0.45 + rng.range(-0.15, 0.25) + (hasTrait('Civilized Archive') ? 0.1 : 0) + (agenda ? rng.range(-0.2, 0.2) : 0), 0.05, 0.95),
+    tech: rng.range(0.05, 0.15),
+    fear: rng.range(0, 0.15),
+    preservation: rng.range(0.2, 0.7),
+    blackHoleCuriosity: clamp(rng.range(0.1, 0.4) + (agenda ? 0.2 : 0), 0, 1),
+    modifiedSeed: false
+  };
+  r.civilization = civ;
+  u.civAlive++;
+  u.civsEver++;
+  pushEvent('First signal from the ' + r.name + '. ' + civ.name + ' — ' + civ.type + ' — begin to act.', 'civ');
+  return civ;
+}
+function killCiv(r, u, why){
+  if (!r.civilization) return;
+  pushEvent(r.civilization.name + ' fall silent in the ' + r.name + '. ' + why, 'civ');
+  r.civilization = null;
+  u.civAlive = Math.max(0, u.civAlive - 1);
+}
+
+/* ---------- Region clamping ---------- */
+function clampRegion(r){
+  r.gas = clamp(r.gas, 0, 140);
+  r.stars = clamp(r.stars, 0, 140);
+  r.massiveStars = clamp(r.massiveStars, 0, 40);
+  r.oldStars = clamp(r.oldStars, 0, 140);
+  r.exoticStars = clamp(r.exoticStars, 0, 6);
+  r.metals = clamp(r.metals, 0, 120);
+  r.radiation = clamp(r.radiation, 0, 100);
+  r.instability = clamp(r.instability, 0, 100);
+  r.blackHolePotential = clamp(r.blackHolePotential, 0, 100);
+  r.shield = clamp(r.shield, 0, 8);
+}
+
+/* ---------- Player actions ---------- */
+const ACTIONS = [
+  {
+    id: 'compress', name: 'Compress', cost: 8,
+    desc: 'Press matter inward. Stars and massive stars rise; instability follows.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 8) return 'Not enough EG (need 8)';
+      if (r.gas < 6) return 'Too little gas to compress';
+      return null;
+    },
+    apply: function(r, u){
+      r.gas -= 12; r.stars += 7; r.massiveStars += 3;
+      r.blackHolePotential += 8; r.instability += 9;
+      r.actionMemory.compress++;
+      addRipple(r, 'in', u.palette.accent);
+      pushEvent('Blue giants ignite in the ' + r.name + '. Massive stars rise; instability follows.', 'action');
+    }
+  },
+  {
+    id: 'disperse', name: 'Disperse', cost: 6,
+    desc: 'Spread matter outward. Calms instability; neighbors drink the gas.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 6) return 'Not enough EG (need 6)';
+      if (r.gas < 4 && r.instability < 10) return 'Nothing here to disperse';
+      return null;
+    },
+    apply: function(r, u){
+      r.instability -= 14;
+      const moved = Math.min(r.gas, 10);
+      r.gas -= moved;
+      if (r.neighbors.length){
+        const share = moved / r.neighbors.length;
+        for (const ni of r.neighbors){
+          u.regions[ni].gas = clamp(u.regions[ni].gas + share, 0, 140);
+        }
+      }
+      u.MC = clamp(u.MC + 2, 0, 100);
+      r.actionMemory.disperse++;
+      r.actionMemory.dispersedCooldown = 2;
+      for (const e of u.edges){ if (e.a === r.id || e.b === r.id) e.glow = 2.2; }
+      addRipple(r, 'out', u.palette.accent2);
+      pushEvent('Matter disperses from the ' + r.name + '. Calm spreads; coherence firms.', 'action');
+    }
+  },
+  {
+    id: 'enrich', name: 'Enrich', cost: 10,
+    desc: 'Route heavy elements here. Chemistry deepens; life stirs closer.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 10) return 'Not enough EG (need 10)';
+      return null;
+    },
+    apply: function(r, u){
+      r.metals += 14;
+      u.MM = clamp(u.MM + 4, 0, 100);
+      r.actionMemory.enrich++;
+      if (r.civilization) r.civilization.alignment = clamp(r.civilization.alignment + 0.06, 0, 1);
+      addParticles(r, '#ffd166', 18);
+      if (r.actionMemory.enrich >= 3){
+        r.instability += 6;
+        if (r.blackHole){
+          r.blackHole.contamination = clamp(r.blackHole.contamination + 0.06, 0, 0.95);
+          updateBH(r.blackHole, u);
+        }
+        pushEvent('Over-enrichment in the ' + r.name + '. Volatility rises; seeds risk contamination.', 'metal');
+      } else {
+        pushEvent('Heavy elements routed to the ' + r.name + '. Chemistry deepens; life stirs closer.', 'metal');
+      }
+    }
+  },
+  {
+    id: 'shield', name: 'Shield', cost: 7,
+    desc: 'A protective field for 4 eons. Radiation bleeds; civilizations endure.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 7) return 'Not enough EG (need 7)';
+      return null;
+    },
+    apply: function(r, u){
+      r.shield = 4;
+      r.radiation -= 15;
+      r.instability -= 8;
+      r.actionMemory.shield++;
+      if (r.civilization) r.civilization.alignment = clamp(r.civilization.alignment + 0.08, 0, 1);
+      addRipple(r, 'ring', u.palette.accent2);
+      pushEvent('A shielding field settles over the ' + r.name + '. Radiation bleeds away; collapse recedes.', 'action');
+    }
+  },
+  {
+    id: 'collapse', name: 'Collapse', cost: 12,
+    desc: 'Push massive stars toward black-hole birth. Violent; seeds may form.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 12) return 'Not enough EG (need 12)';
+      if (r.massiveStars < 4) return 'Needs at least 4 massive stars';
+      return null;
+    },
+    apply: function(r, u){
+      const rng = G.rng;
+      const hadMassive = r.massiveStars;
+      const hadPot = r.blackHolePotential;
+      r.massiveStars -= 6;
+      r.radiation += 18;
+      r.instability += 12;
+      u.MC = clamp(u.MC - 4, 0, 100);
+      r.actionMemory.collapse++;
+      addRipple(r, 'flash', '#ffffff');
+      let blocked = false;
+      const civ = r.civilization;
+      if (civ){
+        civ.fear = clamp(civ.fear + 0.3, 0, 1);
+        civ.alignment = clamp(civ.alignment - 0.2, 0, 1);
+        if (civ.type === 'Star Shepherds' && civ.fear > 0.4 && rng.chance(0.5)){
+          blocked = true;
+          pushEvent(civ.name + ' block the collapse in the ' + r.name + '. Their stars endure.', 'civ');
+        } else if (civ.tech < 0.25 && rng.chance(0.35)){
+          killCiv(r, u, 'The collapse consumed their cradle.');
+        } else {
+          pushEvent(civ.name + ' reel from the collapse. Fear rises; alignment falls.', 'civ');
+        }
+      }
+      if (!blocked){
+        if (hadMassive >= 8 && hadPot >= 50){
+          if (r.blackHole){
+            r.blackHole.mass = clamp(r.blackHole.mass + 0.1, 0.05, 1);
+            tagBH(r.blackHole, 'fed by forced collapse');
+            updateBH(r.blackHole, u);
+            pushEvent(r.blackHole.name + ' deepens. Mass up; the ' + r.name + ' dims.', 'bh');
+          } else {
+            birthBlackHole(r, 'born of forced collapse');
+          }
+        } else {
+          r.blackHolePotential += 12;
+          pushEvent('Collapse in the ' + r.name + ' falls short. Potential builds; radiation scars the field.', 'action');
+        }
+      }
+    }
+  },
+  {
+    id: 'groom', name: 'Seed-Groom', cost: 14,
+    desc: 'Refine a black hole as successor. Fidelity up; contamination down.',
+    can: function(r, u){
+      if (!r) return 'Select a region first';
+      if (u.EG < 14) return 'Not enough EG (need 14)';
+      if (!r.blackHole) return 'Region has no black hole';
+      return null;
+    },
+    apply: function(r, u){
+      const bh = r.blackHole;
+      bh.fidelity = clamp(bh.fidelity + 0.08, 0.05, 0.98);
+      bh.contamination = clamp(bh.contamination - 0.06, 0, 0.95);
+      bh.mutationPressure = clamp(bh.mutationPressure - 0.04, 0, 1);
+      bh.mass = clamp(bh.mass - 0.02, 0.05, 1);
+      tagBH(bh, 'groomed');
+      const shift = updateBH(bh, u);
+      r.actionMemory.groom++;
+      addRipple(r, 'ring', u.palette.ring);
+      pushEvent('Seed-grooming harmonizes ' + bh.name + '. Fidelity rises; the next cosmos sharpens.', 'bh');
+      if (shift) pushEvent(bh.name + ' shifts class: ' + shift + ' → ' + bh.className + '.', 'bh');
+    }
+  }
+];
+function doAction(act){
+  if (G.over || G.dying || !G.universe) return;
+  const r = selectedRegion();
+  const reason = act.can(r, G.universe);
+  if (reason) return;
+  G.universe.EG = clamp(G.universe.EG - act.cost, 0, 100);
+  act.apply(r, G.universe);
+  clampRegion(r);
+  if (view.scale !== 'web' && view.focusId === r.id) addLocalFx(act.id, r);
+  updateUI();
+}
+function selectedRegion(){
+  if (!G.universe || G.selectedId === null) return null;
+  return G.universe.regions[G.selectedId] || null;
+}
+
+/* ---------- Per-eon region simulation ---------- */
+function updateRegion(r, u, totals){
+  const f = u.constants, rng = G.rng;
+
+  // star formation
+  let sfRate = 0.030 + f.fusion * 0.05 + f.gravity * 0.03;
+  if (r.actionMemory.dispersedCooldown > 0) sfRate *= 0.45;
+  const formed = Math.min(r.gas, r.gas * sfRate);
+  r.gas -= formed;
+  r.stars += formed * 0.82;
+  r.massiveStars += formed * (0.08 + f.instability * 0.08);
+  totals.formed += formed;
+  if (formed > 6) cooldownEvent('burst' + r.id, 10,
+    'Starburst in the ' + r.name + '. Nurseries flare; entropy gradient feeds.', 'stellar');
+
+  // aging
+  let ageRate = 0.022 + f.fusion * 0.012;
+  if (hasTrait('Red Dwarf Patience')) ageRate *= 0.7;
+  const aged = r.stars * ageRate;
+  r.stars -= aged;
+  r.oldStars += aged * 0.92;
+
+  // supernovae
+  if (r.massiveStars > 3){
+    const p = clamp(r.massiveStars * 0.014 + r.instability * 0.0012 + f.instability * 0.02, 0, 0.5);
+    if (rng.chance(p)) doSupernova(r, u, totals);
+  }
+
+  // exotic stars
+  if (rng.chance(0.004 + f.instability * 0.004)){
+    r.exoticStars += 1;
+    cooldownEvent('exotic' + r.id, 14, 'An exotic star kindles in the ' + r.name + '. Diversity deepens; physics hums.', 'stellar');
+  }
+
+  // one-time threshold events
+  if (!r.flags.bloom && r.oldStars > 50){
+    r.flags.bloom = true;
+    cooldownEvent('bloom' + r.id, 1, 'Red dwarf bloom in the ' + r.name + '. Patient stars bank coherence for ages.', 'stellar');
+  }
+  if (!r.flags.monastery && r.oldStars > 75){
+    r.flags.monastery = true;
+    u.MC = clamp(u.MC + 1.5, 0, 100);
+    cooldownEvent('mon' + r.id, 1, 'An old-star monastery forms in the ' + r.name + '. Coherence steadies.', 'stellar');
+  }
+  if (!r.flags.vein && r.metals > 65){
+    r.flags.vein = true;
+    u.MM = clamp(u.MM + 2, 0, 100);
+    cooldownEvent('vein' + r.id, 1, 'A rare element vein crystallizes in the ' + r.name + '. Seed information enriches.', 'metal');
+  }
+
+  // civilization genesis
+  if (!r.civilization && u.civAlive < 4 && r.metals > 30 && r.oldStars > 10 && r.radiation < 40){
+    let p = f.lifeBias * 0.035 + r.metals * 0.0004 + (u.MM > 50 ? 0.01 : 0) +
+            (hasTrait('Civilized Archive') ? 0.012 : 0) + r.actionMemory.enrich * 0.004;
+    if (hasScar('Sterile Drift')) p *= 0.45;
+    if (rng.chance(clamp(p, 0, 0.12))) spawnCiv(r, u);
+  }
+
+  // radiation fade, instability drift, shields
+  r.radiation *= 0.86;
+  const target = f.instability * 45 + r.radiation * 0.25 + (r.massiveStars > 12 ? 6 : 0) +
+                 (hasScar('Vacuum Scar') ? 4 : 0);
+  r.instability += (target - r.instability) * 0.12;
+  if (r.shield > 0){
+    r.shield--;
+    r.radiation *= 0.7;
+    r.instability = Math.max(0, r.instability - 3);
+    if (r.shield === 0) cooldownEvent('shoff' + r.id, 4, 'The shield over the ' + r.name + ' dissolves.', 'action');
+  }
+
+  // black-hole potential drift + natural births
+  r.blackHolePotential += r.massiveStars * 0.25 + r.instability * 0.02 - 0.4;
+  if (!r.blackHole && r.massiveStars > 9 && r.blackHolePotential > 55 && rng.chance(0.05 + f.gravity * 0.05)){
+    birthBlackHole(r, 'collapse of ancient giants');
+  }
+
+  if (r.actionMemory.dispersedCooldown > 0) r.actionMemory.dispersedCooldown--;
+  clampRegion(r);
+}
+function doSupernova(r, u, totals){
+  const rng = G.rng;
+  const lit = hasTrait('Supernova Literacy') ? 1.25 : 1;
+  r.massiveStars = Math.max(0, r.massiveStars - rng.range(1, 3));
+  r.metals += (5 + u.constants.chemistry * 6) * lit;
+  r.radiation += 9;
+  r.instability += 5;
+  r.blackHolePotential += 5;
+  totals.sn += 1;
+  totals.egBonus += 2 * lit;
+  totals.mmDelta += 1.2 * lit;
+  u.supernovae++;
+  if (r.massiveStars > 10){
+    cooldownEvent('snchain' + r.id, 6, 'A supernova chain tears through the ' + r.name + '. Metals scatter; radiation storms.', 'stellar');
+  } else {
+    cooldownEvent('sn' + r.id, 5, 'Supernova in the ' + r.name + '. Metals seed the dark; instability follows.', 'stellar');
+  }
+  if (!r.blackHole && r.blackHolePotential > 65 && rng.chance(0.18)){
+    birthBlackHole(r, 'a giant fell');
+  }
+}
+
+/* ---------- Civilization behavior ---------- */
+function civAct(r, u, totals){
+  const c = r.civilization, rng = G.rng, f = u.constants;
+  c.tech = clamp(c.tech + 0.012 + c.alignment * 0.01, 0, 1);
+  u.maxCivTech = Math.max(u.maxCivTech, c.tech);
+  c.fear = clamp(c.fear * 0.95, 0, 1);
+  c.alignment = clamp(c.alignment + (0.5 - c.alignment) * 0.02, 0, 1);
+  const volatile = u.MM > 75 ? 1.8 : 1;
+  if (r.radiation > 35){
+    c.fear = clamp(c.fear + 0.09 * volatile, 0, 1);
+    c.alignment = clamp(c.alignment - 0.05 * volatile, 0, 1);
+  }
+  if (r.shield > 0) c.alignment = clamp(c.alignment + 0.025, 0, 1);
+  if (r.radiation > 78 && rng.chance(0.3)){
+    killCiv(r, u, 'Radiation scoured their worlds.');
+    return;
+  }
+  switch (c.type){
+    case 'Star Shepherds': {
+      r.instability = clamp(r.instability - 1.6, 0, 100);
+      totals.mcDelta += 0.22;
+      r.blackHolePotential = clamp(r.blackHolePotential - (c.fear > 0.55 ? 2.4 : 0.9), 0, 100);
+      if (c.fear > 0.55){
+        cooldownEvent('shep' + r.id, 7, c.name + ' begin preserving their parent star. Collapse chance reduced.', 'civ');
+      }
+      break;
+    }
+    case 'Black-Hole Cult': {
+      c.blackHoleCuriosity = clamp(c.blackHoleCuriosity + 0.025, 0, 1);
+      const targetBH = r.blackHole || neighborBH(r, u);
+      if (targetBH && c.blackHoleCuriosity > 0.5 && rng.chance(0.10 + c.tech * 0.1)){
+        targetBH.civTouched = true;
+        c.modifiedSeed = true;
+        targetBH.fidelity = clamp(targetBH.fidelity + rng.range(-0.05, 0.09), 0.05, 0.98);
+        targetBH.contamination = clamp(targetBH.contamination + 0.07, 0, 0.95);
+        targetBH.mutationPressure = clamp(targetBH.mutationPressure + 0.05, 0, 1);
+        const shift = updateBH(targetBH, u);
+        tagBH(targetBH, 'touched by ' + c.name);
+        pushEvent(c.name + ' reach into ' + targetBH.name + '. Fertility stirs; contamination spreads.', 'civ');
+        if (shift) pushEvent(targetBH.name + ' shifts class: ' + shift + ' → ' + targetBH.className + '.', 'bh');
+      } else if (targetBH){
+        cooldownEvent('cult' + r.id, 9, c.name + ' worship ' + targetBH.name + '. Curiosity deepens.', 'civ');
+      }
+      break;
+    }
+    case 'Entropy Miners': {
+      totals.egBonus += 1.6 + c.tech * 1.2;
+      totals.mcDelta -= 0.28;
+      r.gas = clamp(r.gas - 1.4, 0, 140);
+      if (r.gas < 6){
+        cooldownEvent('mined' + r.id, 8, c.name + ' have nearly exhausted the ' + r.name + '. EG flows; matter thins.', 'civ');
+      } else {
+        cooldownEvent('mine' + r.id, 11, c.name + ' mine entropy in the ' + r.name + '. EG income rises; coherence pays.', 'civ');
+      }
+      break;
+    }
+    case 'Silent Gardeners': {
+      r.metals = clamp(r.metals + 0.9, 0, 120);
+      r.instability = clamp(r.instability - 1.1, 0, 100);
+      totals.mmDelta += 0.12;
+      cooldownEvent('garden' + r.id, 12, c.name + ' expand their silent garden in the ' + r.name + '. Complexity grows.', 'civ');
+      break;
+    }
+  }
+  if (c.fear > 0.78 && rng.chance(0.25)){
+    r.blackHolePotential = clamp(r.blackHolePotential - 4, 0, 100);
+    pushEvent(c.name + ' panic. They sabotage collapse in the ' + r.name + '.', 'civ');
+  }
+}
+
+/* ---------- Black-hole behavior ---------- */
+function bhAct(r, u, totals){
+  const bh = r.blackHole, rng = G.rng;
+  bh.age++;
+  const hunger = (bh.className === 'Devourer' ? 2.4 : 1) * (hasScar('Maw Hunger') ? 1.35 : 1);
+  const feed = clamp((r.gas * 0.0035 + r.stars * 0.0015) * hunger, 0, 0.05);
+  bh.mass = clamp(bh.mass + feed, 0.05, 1);
+  r.gas = clamp(r.gas - feed * 90, 0, 140);
+  totals.egBonus += feed * 18;
+  if (bh.className === 'Devourer'){
+    r.stars = clamp(r.stars - 1.5, 0, 140);
+    totals.mcDelta -= 0.35;
+    bh.fidelity = clamp(bh.fidelity - 0.006, 0.05, 0.98);
+    cooldownEvent('maw' + bh.id, 8, bh.name + ' consumed a nursery in the ' + r.name + '. Mass up; fidelity down.', 'bh');
+  } else if (feed > 0.012){
+    cooldownEvent('qa' + bh.id, 12, bh.name + ' accretes quietly. EG trickles from the ' + r.name + '.', 'bh');
+  }
+  bh.contamination = clamp(bh.contamination + r.radiation * 0.0009 - 0.002, 0, 0.95);
+  bh.mutationPressure = clamp(lerp(bh.mutationPressure, bh.contamination * 0.6 + r.instability * 0.004, 0.08), 0, 1);
+  if (bh.contamination > 0.5){
+    tagBH(bh, 'contaminated');
+    cooldownEvent('cont' + bh.id, 10, 'Contamination saturates ' + bh.name + '. Mutation pressure climbs.', 'bh');
+  }
+  if (bh.age > 14) tagBH(bh, 'ancient');
+  const shift = updateBH(bh, u);
+  if (shift) pushEvent(bh.name + ' shifts class: ' + shift + ' → ' + bh.className + '.', 'bh');
+}
+
+/* ---------- Phase & death pressure ---------- */
+function computePhase(u){
+  if (u.deathPressure >= 100) return 'Inheritance';
+  if (u.deathPressure >= 65 || u.eon >= 30) return 'Reproductive Crisis';
+  if (u.eon < 3) return 'Genesis';
+  if (u.eon < 7) return 'Structure';
+  if (u.eon < 13) return 'Stellar Ecology';
+  if (u.eon < 19) return 'Chemistry';
+  return 'Life & Civilization';
+}
+function quietCount(u){
+  let n = 0;
+  for (const r of u.regions) if (r.blackHole && r.blackHole.className === 'Quiet Seed') n++;
+  return n;
+}
+function shieldedCount(u){
+  let n = 0;
+  for (const r of u.regions) if (r.shield > 0) n++;
+  return n;
+}
+function updateDeathPressure(u, avgInst, avgRad, avgOld){
+  const f = u.constants;
+  let devMass = 0, anomContam = 0;
+  for (const r of u.regions){
+    if (!r.blackHole) continue;
+    if (r.blackHole.className === 'Devourer') devMass += r.blackHole.mass;
+    if (r.blackHole.className === 'Anomalous Seed') anomContam = Math.max(anomContam, r.blackHole.contamination);
+  }
+  let d = 0.6;
+  if (u.eon > 28) d += (u.eon - 28) * 0.55;
+  if (u.EG < 22) d += (22 - u.EG) * 0.12;
+  if (u.MC < 45) d += (45 - u.MC) * 0.08;
+  d += (avgInst / 100) * 3.2;
+  d += (avgRad / 100) * 1.6;
+  d += devMass * 2.2;
+  d += anomContam * 1.5;
+  if (f.expansion < 0.35 && f.gravity > 0.65) d += 1.2;
+  if (hasScar('Vacuum Scar')) d += 0.5;
+  // reliefs
+  if (u.MC > 70) d -= 0.8;
+  d -= clamp(avgOld / 120, 0, 0.6);
+  d -= shieldedCount(u) * 0.15;
+  d -= quietCount(u) * 0.2;
+  d = Math.max(d, -1.5);
+  u.riskDelta = d;
+  u.deathPressure = clamp(u.deathPressure + d, 0, 100);
+}
+function riskLabel(d){
+  if (d < 0.4) return 'Dormant';
+  if (d < 1.0) return 'Faint';
+  if (d < 1.8) return 'Rising';
+  if (d < 3.2) return 'Severe';
+  return 'Critical';
+}
+
+/* ---------- Ambient crisis events ---------- */
+function ambientEvents(u, avgInst, avgRad){
+  const f = u.constants;
+  if (u.EG < 20) cooldownEvent('egthin', 6, 'Entropy thins. Crisis pressure rising.', 'crisis');
+  if (u.MC < 35) cooldownEvent('mcfrac', 6, 'Matter coherence fractures. The web loosens.', 'crisis');
+  if (f.expansion > 0.72 && u.eon > 18) cooldownEvent('expacc', 12, 'Expansion accelerates. Filaments stretch thin.', 'crisis');
+  if (f.gravity > 0.7 && u.MC < 55) cooldownEvent('gfold', 12, 'Gravity folds inward. Collapse looms in the deep wells.', 'crisis');
+  if (avgInst > 55 && G.rng.chance(0.4)) cooldownEvent('vtrem', 7, 'A vacuum tremor passes through the web. Instability whispers.', 'crisis');
+  if (!u.flags.mm50 && u.MM > 50){
+    u.flags.mm50 = true;
+    pushEvent('Chemistry threshold crossed. Complex molecules persist; life bias strengthens.', 'metal');
+  }
+  if (u.deathPressure > 80) cooldownEvent('near', 5, 'The universe nears its ending. Death pressure: ' + Math.round(u.deathPressure) + '.', 'crisis');
+}
+
+/* ---------- End Eon ---------- */
+function endEon(){
+  if (G.over || G.dying || !G.universe) return;
+  const u = G.universe, f = u.constants;
+  u.eon++;
+  visual.pulse = {age: 0};
+  const totals = {formed: 0, sn: 0, egBonus: 0, mcDelta: 0, mmDelta: 0};
+
+  for (const r of u.regions) updateRegion(r, u, totals);
+  for (const r of u.regions) if (r.civilization) civAct(r, u, totals);
+  for (const r of u.regions) if (r.blackHole) bhAct(r, u, totals);
+
+  // resources
+  const ageFactor = clamp(1.15 - u.eon * 0.02, 0.3, 1.15);
+  const egIncome = (5 + f.entropyRichness * 4 + totals.formed * 0.07 + totals.sn * 2 +
+                    totals.egBonus + (hasTrait('Entropy Discipline') ? 1.5 : 0)) * ageFactor;
+  u.EG = clamp(u.EG + egIncome, 0, 100);
+
+  const avgInst = avgOf(u.regions, 'instability');
+  const avgRad = avgOf(u.regions, 'radiation');
+  const avgOld = avgOf(u.regions, 'oldStars');
+  const oldBonus = hasTrait('Red Dwarf Patience') ? 1.4 : 1;
+  const mcDelta = (42 - avgInst) * 0.03 + avgOld * 0.006 * oldBonus - avgRad * 0.015 +
+                  totals.mcDelta + shieldedCount(u) * 0.12 + quietCount(u) * 0.18;
+  u.MC = clamp(u.MC + mcDelta, 0, 100);
+  u.MM = clamp(u.MM + totals.sn * 0.7 + totals.mmDelta, 0, 100);
+
+  ambientEvents(u, avgInst, avgRad);
+  updateDeathPressure(u, avgInst, avgRad, avgOld);
+  u.phase = computePhase(u);
+
+  if (view.scale !== 'web' && view.focusId !== null && u.regions[view.focusId]){
+    addLocalFx('eon', u.regions[view.focusId]);
+  }
+  if (view.scale === 'life' && !lifeAvailable(focusRegion())) zoomTo('system');
+
+  if (u.deathPressure >= 100){
+    die();
+  }
+  updateUI();
+}
+
+/* ---------- Death, scoring, inheritance ---------- */
+function allBlackHoles(u){
+  const out = [];
+  for (const r of u.regions) if (r.blackHole) out.push(r.blackHole);
+  return out;
+}
+function chooseDeathMode(u){
+  const f = u.constants;
+  const avgI = avgOf(u.regions, 'instability');
+  const avgR = avgOf(u.regions, 'radiation');
+  const bhs = allBlackHoles(u);
+  let devMass = 0, anomCount = 0, contamSum = 0;
+  for (const bh of bhs){
+    if (bh.className === 'Devourer') devMass += bh.mass;
+    if (bh.className === 'Anomalous Seed') anomCount++;
+    contamSum += bh.contamination;
+  }
+  const avgContam = bhs.length ? contamSum / bhs.length : 0;
+  const viable = bhs.filter(function(b){ return b.fertility > 0.10; });
+  const meanStars = avgOf(u.regions, 'stars') + avgOf(u.regions, 'oldStars');
+  const w = {
+    'Heat Death': (u.EG < 25 ? 2 : 0) + f.expansion * 2 + (avgR < 18 ? 1 : 0) + (u.MC > 45 ? 0.5 : 0),
+    'Big Crunch': f.gravity * 2.4 + (avgI > 45 ? 1.2 : 0) + devMass * 1.6 + (1 - f.expansion) * 1.4,
+    'Vacuum Rupture': (avgI / 100) * 2 + anomCount * 1.3 + (u.MC < 40 ? 1.4 : 0) + avgContam * 2 + (hasScar('Vacuum Scar') ? 0.8 : 0),
+    'Sterile Fadeout': (viable.length === 0 ? 4 : 0) + (meanStars < 18 ? 1.2 : 0) + (u.MM < 25 ? 1 : 0)
+  };
+  let best = 'Heat Death', bw = -1;
+  for (const k in w){ if (w[k] > bw){ bw = w[k]; best = k; } }
+  return best;
+}
+function computeScores(u){
+  const bhs = allBlackHoles(u);
+  let bestFert = 0, contamSum = 0;
+  for (const bh of bhs){
+    bestFert = Math.max(bestFert, bh.fertility);
+    contamSum += bh.contamination;
+  }
+  let feats = 0;
+  for (const r of u.regions){
+    if (r.stars > 12) feats++;
+    if (r.massiveStars > 5) feats++;
+    if (r.oldStars > 18) feats++;
+    if (r.exoticStars > 0) feats += 2;
+    if (r.metals > 35) feats++;
+  }
+  const avgI = avgOf(u.regions, 'instability');
+  return {
+    fertility: Math.round(clamp((bestFert || 0.06) * 100, 0, 100)),
+    diversity: Math.round(clamp(feats / (u.regions.length * 4) * 130, 0, 100)),
+    complexity: Math.round(clamp(u.civsEver * 16 + u.maxCivTech * 40 + u.MM * 0.35, 0, 100)),
+    coherence: Math.round(clamp(u.MC, 0, 100)),
+    mutation: Math.round(clamp((bhs.length ? contamSum / bhs.length : 0.4) * 70 + avgI * 0.45, 0, 100))
+  };
+}
+function computeInheritanceGains(u, seed, mode, scores){
+  let trait = null, scar = null;
+  const avgOld = avgOf(u.regions, 'oldStars');
+  if (u.MM > 60 && !hasTrait('Metal Memory')) trait = 'Metal Memory';
+  else if (seed.className === 'Quiet Seed' && seed.fidelity > 0.68 && !hasTrait('Quiet Fidelity')) trait = 'Quiet Fidelity';
+  else if (u.supernovae > 14 && !hasTrait('Supernova Literacy')) trait = 'Supernova Literacy';
+  else if (u.civsEver >= 2 && !hasTrait('Civilized Archive')) trait = 'Civilized Archive';
+  else if (u.EG > 45 && !hasTrait('Entropy Discipline')) trait = 'Entropy Discipline';
+  else if (avgOld > 30 && !hasTrait('Red Dwarf Patience')) trait = 'Red Dwarf Patience';
+  if (mode === 'Vacuum Rupture' && !hasScar('Vacuum Scar')) scar = 'Vacuum Scar';
+  else if (seed.civTouched && !hasScar('Agenda Residue')) scar = 'Agenda Residue';
+  else if (seed.className === 'Devourer' && seed.mass > 0.65 && !hasScar('Maw Hunger')) scar = 'Maw Hunger';
+  else if (mode === 'Sterile Fadeout' && !hasScar('Sterile Drift')) scar = 'Sterile Drift';
+  else if (scores.diversity < 25 && !hasScar('Monoculture Brittleness')) scar = 'Monoculture Brittleness';
+  return {trait: trait, scar: scar};
+}
+function die(){
+  G.dying = true;
+  const u = G.universe;
+  u.phase = 'Inheritance';
+  const mode = chooseDeathMode(u);
+  const scores = computeScores(u);
+  let ledger = allBlackHoles(u).sort(function(a, b){ return b.fertility - a.fertility; });
+  if (!ledger.length) ledger = [residualSpark()];
+  G.deathInfo = {mode: mode, scores: scores, ledger: ledger, cause: DEATH_INFO[mode].cause};
+  visual.deathT = 0;
+  pushEvent('The universe chooses its ending: ' + mode + '.', 'crisis');
+  updateUI();
+  setTimeout(openDeathModal, 1900);
+}
+
+/* ---------- Death modal ---------- */
+function openDeathModal(){
+  G.over = true;
+  const u = G.universe, d = G.deathInfo;
+  document.getElementById('mGen').textContent = G.generation;
+  document.getElementById('mUni').textContent = u.name;
+  document.getElementById('mMode').textContent = d.mode;
+  document.getElementById('mCause').textContent = d.cause;
+  const sc = d.scores;
+  const scoreDefs = [['Fertility', sc.fertility], ['Diversity', sc.diversity],
+    ['Complexity', sc.complexity], ['Coherence', sc.coherence], ['Mutation', sc.mutation]];
+  let sh = '';
+  for (const s of scoreDefs){
+    sh += '<div class="score"><div class="sn">' + s[1] + '</div><div class="st">' + s[0] + '</div></div>';
+  }
+  document.getElementById('mScores').innerHTML = sh;
+
+  const led = document.getElementById('mLedger');
+  led.innerHTML = '';
+  d.ledger.forEach(function(bh, idx){
+    const card = document.createElement('div');
+    card.className = 'seed';
+    const info = CLASS_INFO[bh.className];
+    card.innerHTML =
+      '<div class="sn2">' + bh.name + '</div>' +
+      '<div class="bhclass ' + info.css + '">' + bh.className + '</div>' +
+      '<div class="srow"><span>Mass</span><b>' + bh.mass.toFixed(2) + '</b></div>' +
+      '<div class="srow"><span>Fidelity</span><b>' + bh.fidelity.toFixed(2) + '</b></div>' +
+      '<div class="srow"><span>Contamination</span><b>' + bh.contamination.toFixed(2) + '</b></div>' +
+      '<div class="srow"><span>Mutation pressure</span><b>' + bh.mutationPressure.toFixed(2) + '</b></div>' +
+      '<div class="srow"><span>Fertility</span><b>' + bh.fertility.toFixed(2) + '</b></div>' +
+      '<div class="bias">' + info.bias + '</div>' +
+      '<div class="tag">' + bh.historyTags.join(' · ') + '</div>';
+    card.addEventListener('click', function(){ selectSeed(idx); });
+    led.appendChild(card);
+  });
+  G.pendingSeedIdx = -1;
+  G.pendingPlan = null;
+  document.getElementById('mPreview').innerHTML =
+    '<div class="empty">Select a seed from the ledger to preview the successor universe.</div>';
+  document.getElementById('mContinue').disabled = true;
+  document.getElementById('modal').classList.remove('hidden');
+  updateUI();
+}
+function selectSeed(idx){
+  const u = G.universe, d = G.deathInfo;
+  G.pendingSeedIdx = idx;
+  const seed = d.ledger[idx];
+  const cards = document.querySelectorAll('#mLedger .seed');
+  cards.forEach(function(c, i){ c.classList.toggle('sel', i === idx); });
+  const nextSeedNum = hashString(u.seed.toString(16) + '|' + seed.name + '|' + G.generation);
+  G.pendingPlan = planUniverse(nextSeedNum, u, seed, d.mode);
+  G.pendingGains = computeInheritanceGains(u, seed, d.mode, d.scores);
+
+  // preview
+  const plan = G.pendingPlan;
+  let rows = '';
+  for (const k of CKEYS){
+    const a = u.constants[k], b = plan.constants[k];
+    const diff = b - a;
+    const arrow = diff > 0.04 ? '<span class="arrow up">▲</span>' :
+                  (diff < -0.04 ? '<span class="arrow dn">▼</span>' : '<span class="arrow fl">·</span>');
+    rows += '<div class="prow"><span class="pl">' + CLABEL[k] + '</span>' +
+      '<div class="pb"><div class="pf" style="width:' + Math.round(a * 100) + '%;background:rgba(255,255,255,0.25);"></div></div>' +
+      arrow +
+      '<div class="pb"><div class="pf" style="width:' + Math.round(b * 100) + '%;background:' + plan.palette.accent + ';"></div></div></div>';
+  }
+  const gains = [];
+  if (G.pendingGains.trait) gains.push('<span class="lg">+' + G.pendingGains.trait + '</span>');
+  if (G.pendingGains.scar) gains.push('<span class="ls">+' + G.pendingGains.scar + ' (scar)</span>');
+  const pal = plan.palette;
+  document.getElementById('mPreview').innerHTML =
+    '<div class="cap">Successor Preview</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">' +
+      '<div class="pname" style="color:' + pal.accent + ';">' + plan.name + '</div>' +
+      '<div class="pswatches">' +
+        '<div class="psw" style="background:' + pal.bg1 + ';"></div>' +
+        '<div class="psw" style="background:' + pal.accent + ';"></div>' +
+        '<div class="psw" style="background:' + pal.accent2 + ';"></div>' +
+        '<div class="psw" style="background:' + pal.ring + ';"></div>' +
+      '</div></div>' +
+    '<div class="pgrid">' + rows + '</div>' +
+    '<div style="font-size:11px;color:var(--dim);">Inheritance: ' +
+      (gains.length ? gains.join(' &nbsp; ') : '<span class="fl">no new traits or scars</span>') + '</div>';
+  document.getElementById('mContinue').disabled = false;
+}
+function continueSuccessor(){
+  if (!G.pendingPlan || G.pendingSeedIdx < 0) return;
+  const u = G.universe, d = G.deathInfo;
+  const seed = d.ledger[G.pendingSeedIdx];
+  const gains = G.pendingGains || {trait: null, scar: null};
+  if (gains.trait && G.traits.length < 4) G.traits.push(gains.trait);
+  if (gains.scar && G.scars.length < 3) G.scars.push(gains.scar);
+  const gainedTxt = [gains.trait, gains.scar].filter(Boolean).join(' · ') || '—';
+  G.lineage.unshift({
+    gen: G.generation, name: u.name, deathMode: d.mode,
+    seedName: seed.name, seedClass: seed.className,
+    gained: gainedTxt, color: u.palette.accent, fert: d.scores.fertility
+  });
+  G.generation++;
+  document.getElementById('modal').classList.add('hidden');
+  bootUniverse(G.pendingPlan);
+  pushEvent('Generation ' + G.generation + ' kindles from ' + seed.name + '. The lineage continues.', 'crisis');
+}
+
+/* ---------- Lineage boot / reset ---------- */
+function bootUniverse(plan){
+  G.universe = instantiateUniverse(plan);
+  G.rng = new RNG(plan.seedNum ^ 0x7f4a7c15);
+  G.selectedId = null;
+  G.hoverId = null;
+  G.over = false;
+  G.dying = false;
+  G.deathInfo = null;
+  G.pendingPlan = null;
+  applyPalette(plan.palette);
+  rebuildNebula();
+  visual.ripples.length = 0;
+  visual.particles.length = 0;
+  visual.pulse = null;
+  visual.deathT = -1;
+  visual.birthT = 0;
+  resetView();
+  showBanner('GENERATION ' + G.generation, plan.name);
+  updateUI();
+}
+function startNewLineage(){
+  G.generation = 1;
+  G.traits = [];
+  G.scars = [];
+  G.lineage = [];
+  G.feed = [];
+  document.getElementById('modal').classList.add('hidden');
+  const seedNum = (Math.random() * 0xffffffff) >>> 0;
+  const plan = planUniverse(seedNum, null, null, null);
+  bootUniverse(plan);
+  pushEvent('Genesis. A new lineage kindles in the dark.', 'crisis');
+}
+let bannerTimer = null;
+function showBanner(genTxt, nameTxt){
+  const b = document.getElementById('banner');
+  document.getElementById('bGen').textContent = genTxt;
+  document.getElementById('bName').textContent = nameTxt;
+  b.classList.add('show');
+  if (bannerTimer) clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(function(){ b.classList.remove('show'); }, 3600);
+}
+
+/* ---------- UI updates ---------- */
+function setBar(id, val){
+  document.getElementById(id).style.width = clamp(val, 0, 100) + '%';
+}
+function statRow(label, val, max, color){
+  const pct = clamp(val / max * 100, 0, 100);
+  return '<div class="stat"><span class="sl">' + label + '</span>' +
+    '<div class="sb"><div class="sf" style="width:' + pct + '%;' + (color ? 'background:' + color + ';' : '') + '"></div></div>' +
+    '<span class="sv">' + (Math.round(val * 10) / 10) + '</span></div>';
+}
+function updateFeed(){
+  const el = document.getElementById('feed');
+  let h = '';
+  const n = Math.min(6, G.feed.length);
+  for (let i = 0; i < n; i++){
+    const ev = G.feed[i];
+    h += '<div class="ev"><span class="ee">E' + ev.eon + '</span><span class="dot ' + ev.kind + '"></span>' +
+         ev.text + '</div>';
+  }
+  el.innerHTML = h;
+}
+function updateRegionPanel(){
+  const el = document.getElementById('regionInfo');
+  const r = selectedRegion();
+  if (!r){
+    el.innerHTML = '<div class="empty">Click a node on the cosmic web to select a region.</div>';
+    return;
+  }
+  const u = G.universe;
+  let h = '<div style="font-size:14px;font-weight:600;margin-bottom:4px;">' + r.name + '</div>';
+  h += statRow('Gas', r.gas, 140);
+  h += statRow('Stars', r.stars, 140);
+  h += statRow('Massive stars', r.massiveStars, 40, '#9db4ff');
+  h += statRow('Old stars', r.oldStars, 140, '#ffb3a0');
+  h += statRow('Exotic stars', r.exoticStars, 6, '#e06aff');
+  h += statRow('Metals', r.metals, 120, 'var(--mm)');
+  h += statRow('Radiation', r.radiation, 100, 'var(--danger)');
+  h += statRow('Instability', r.instability, 100, 'var(--danger)');
+  h += statRow('BH potential', r.blackHolePotential, 100, '#b48cff');
+  if (r.shield > 0) h += '<div class="tag" style="color:var(--accent2);">Shielded — ' + r.shield + ' eon' + (r.shield > 1 ? 's' : '') + ' remaining</div>';
+  if (r.civilization){
+    const c = r.civilization;
+    h += '<div class="subcard"><div class="sct" style="color:var(--accent2);">' + c.name + '</div>' +
+      '<div class="scs">' + c.type + (c.modifiedSeed ? ' · seed-modifiers' : '') + '</div>' +
+      statRow('Alignment', c.alignment * 100, 100, 'var(--accent2)') +
+      statRow('Tech', c.tech * 100, 100, '#6cc7ff') +
+      statRow('Fear', c.fear * 100, 100, 'var(--danger)') +
+      statRow('BH curiosity', c.blackHoleCuriosity * 100, 100, '#b48cff') +
+      '</div>';
+  }
+  if (r.blackHole){
+    const bh = r.blackHole;
+    const info = CLASS_INFO[bh.className];
+    h += '<div class="subcard"><div class="sct">' + bh.name + '</div>' +
+      '<div class="bhclass ' + info.css + '">' + bh.className + '</div>' +
+      statRow('Mass', bh.mass * 100, 100, '#b48cff') +
+      statRow('Fidelity', bh.fidelity * 100, 100, 'var(--accent2)') +
+      statRow('Contamination', bh.contamination * 100, 100, 'var(--danger)') +
+      statRow('Mutation', bh.mutationPressure * 100, 100, '#e06aff') +
+      statRow('Fertility', bh.fertility * 100, 100, 'var(--mm)') +
+      '<div class="tag">' + bh.historyTags.join(' · ') + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+function updateActions(){
+  const u = G.universe;
+  const r = selectedRegion();
+  let hint = '';
+  for (const act of ACTIONS){
+    const btn = document.getElementById('btn-' + act.id);
+    const reason = (G.over || G.dying) ? 'Universe is ending' : act.can(r, u);
+    btn.disabled = !!reason;
+    btn.title = reason ? reason : act.desc;
+    if (reason && !hint && r) hint = '';
+  }
+  if (!r) hint = 'Select a region to act on the cosmos.';
+  else hint = 'EG available: ' + Math.round(u.EG) + ' · acting on the ' + r.name;
+  document.getElementById('actionHint').textContent = hint;
+  document.getElementById('endEon').disabled = G.over || G.dying;
+}
+function updateTraits(){
+  const el = document.getElementById('traits');
+  let h = '';
+  for (const t of G.traits) h += '<span class="chip" title="' + (TRAIT_DESC[t] || '') + '">' + t + '</span>';
+  for (const s of G.scars) h += '<span class="chip scar" title="' + (TRAIT_DESC[s] || '') + '">' + s + '</span>';
+  if (!h) h = '<span class="chip none">unmarked lineage</span>';
+  el.innerHTML = h;
+}
+function updateLineage(){
+  const el = document.getElementById('lineage');
+  if (!G.lineage.length){
+    el.innerHTML = '<div class="empty">No ancestors yet. This is the first cosmos.</div>';
+    return;
+  }
+  let h = '';
+  for (const L of G.lineage){
+    h += '<div class="lin"><div class="sw" style="background:' + L.color + ';color:' + L.color + ';"></div>' +
+      '<div class="lt"><b>G' + L.gen + ' · ' + L.name + '</b><br>' +
+      L.deathMode + ' → ' + L.seedName + ' <span style="color:var(--faint);">(' + L.seedClass + ')</span><br>' +
+      '<span class="' + (SCARS_LIST.indexOf(L.gained) !== -1 ? 'ls' : 'lg') + '">' + L.gained + '</span>' +
+      ' · fertility ' + L.fert + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+function updateUI(){
+  const u = G.universe;
+  if (!u) return;
+  document.getElementById('uniName').textContent = u.name;
+  document.getElementById('genNum').textContent = G.generation;
+  document.getElementById('seedStr').textContent = (u.seed >>> 0).toString(16).toUpperCase().padStart(8, '0');
+  document.getElementById('eonNum').textContent = u.eon;
+  document.getElementById('phaseTxt').textContent = u.phase;
+  document.getElementById('riskTxt').textContent = riskLabel(u.riskDelta);
+  document.getElementById('dpVal').textContent = Math.round(u.deathPressure);
+  setBar('dpBar', u.deathPressure);
+  document.getElementById('egVal').textContent = Math.round(u.EG);
+  setBar('egBar', u.EG);
+  document.getElementById('mcVal').textContent = Math.round(u.MC);
+  setBar('mcBar', u.MC);
+  document.getElementById('mmVal').textContent = Math.round(u.MM);
+  setBar('mmBar', u.MM);
+  document.getElementById('chipEon').textContent = u.eon;
+  document.getElementById('chipPhase').textContent = u.phase;
+  updateRegionPanel();
+  updateActions();
+  updateTraits();
+  updateLineage();
+  updateZoomUI();
+}
+
+/* ---------- Visual state ---------- */
+const visual = {
+  ripples: [],
+  particles: [],
+  dust: [],
+  pulse: null,
+  deathT: -1,
+  birthT: -1,
+  localFx: []
+};
+function addRipple(r, mode, color){
+  visual.ripples.push({rx: r.x, ry: r.y, age: 0, dur: mode === 'flash' ? 0.8 : 1.4, mode: mode, color: color});
+}
+function addParticles(r, color, n){
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2;
+    const sp = 18 + Math.random() * 50;
+    visual.particles.push({rx: r.x, ry: r.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      age: 0, dur: 0.9 + Math.random() * 0.7, color: color, size: 1 + Math.random() * 2});
+  }
+}
+
+/* ---------- Nested zoom: view state ---------- */
+const TAU = Math.PI * 2;
+const view = {scale: 'web', focusId: null, anim: null, lifeEnterT: 0};
+function easeIO(x){ return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+function focusRegion(){
+  if (!G.universe || view.focusId === null) return null;
+  return G.universe.regions[view.focusId] || null;
+}
+function lifeAvailable(r){
+  return !!r && (!!r.civilization || (r.metals > 35 && G.universe.constants.lifeBias > 0.35));
+}
+function zoomTo(target){
+  if (!G.universe || view.anim || G.over || G.dying) return;
+  if (target === view.scale) return;
+  if (view.scale === 'web' && target === 'life') return;
+  if (view.scale === 'life' && target === 'web') target = 'system';
+  if (view.scale === 'web' && target === 'system'){
+    if (G.selectedId === null) return;
+    view.focusId = G.selectedId;
+  }
+  if (view.scale === 'system' && target === 'life' && !lifeAvailable(focusRegion())) return;
+  view.anim = {from: view.scale, to: target, t: 0,
+    dur: (view.scale === 'web' || target === 'web') ? 1.4 : 0.9};
+  if (target === 'life') view.lifeEnterT = performance.now() / 1000;
+  updateUI();
+}
+function resetView(){
+  view.scale = 'web';
+  view.focusId = null;
+  view.anim = null;
+  visual.localFx.length = 0;
+}
+
+/* ---------- System story ---------- */
+function joinAnd(arr){
+  if (arr.length <= 1) return arr.join('');
+  return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+}
+function civThreadDesc(type){
+  if (type === 'Star Shepherds') return 'stabilizing cages around their parent stars';
+  if (type === 'Black-Hole Cult') return 'signal lines toward the dark';
+  if (type === 'Entropy Miners') return 'extraction webs across the belts';
+  return 'branching biospheres across its worlds';
+}
+function systemStory(r, u){
+  const adjs = [];
+  if (r.oldStars > 35) adjs.push('old'); else if (u.eon < 8) adjs.push('young');
+  if (r.metals > 50) adjs.push('metal-rich'); else if (r.metals < 12) adjs.push('metal-poor');
+  if (r.instability > 50) adjs.push('unstable');
+  else if (r.instability < 18 && r.radiation < 15) adjs.push('quiet');
+  if (r.shield > 0) adjs.push('shielded');
+  if (!adjs.length) adjs.push('unremarkable');
+  let s = 'The ' + r.name + ' is ' + joinAnd(adjs.slice(0, 3)) + '. ';
+  if (r.blackHole){
+    const bh = r.blackHole;
+    s += 'It is collapsing into seedhood: ' + bh.name + ' is ' +
+      (bh.fertility > 0.3 ? 'fertile' : 'weakly fertile') +
+      (bh.contamination > 0.35 ? ' but contaminated. ' : ' and clean. ');
+  } else if (r.massiveStars > 8) s += 'Blue giants dominate its inner dust, straining toward collapse. ';
+  else if (r.oldStars > 30) s += 'Red stars hold slow, patient orbits under a dim halo. ';
+  else if (r.stars > 40) s += 'Dense stellar nurseries crowd its belts. ';
+  else s += 'Sparse stars drift through thin gas. ';
+  if (r.civilization){
+    const c = r.civilization;
+    const mood = c.fear > 0.5 ? 'fearful' : (c.alignment > 0.6 ? 'harmonious' : 'wary');
+    s += c.name + ', ' + mood + ' ' + c.type + ', thread ' + civThreadDesc(c.type) + '.';
+  } else if (lifeAvailable(r)) s += 'A proto-biosphere glimmers where metals pool.';
+  else if (r.radiation > 40) s += 'Radiation storms keep it barren.';
+  return s;
+}
+
+/* ---------- Local system generation (deterministic skeleton) ---------- */
+function getSystem(r){
+  if (r.vis.sys) return r.vis.sys;
+  const rng = new RNG(hashString(G.universe.seed.toString(16) + ':' + r.id + ':sys'));
+  const sys = {_pos: []};
+  sys.binary = rng.chance(0.18);
+  sys.planets = [];
+  let orad = 0.14;
+  for (let i = 0; i < 7; i++){
+    orad += rng.range(0.065, 0.105);
+    const moons = [];
+    const nm = rng.int(0, 3);
+    for (let m = 0; m < nm; m++){
+      moons.push({orbit: rng.range(0.018, 0.042), size: rng.range(0.8, 1.7),
+                  speed: rng.range(0.5, 1.6) * (rng.chance(0.5) ? 1 : -1), ph: rng.range(0, TAU)});
+    }
+    sys.planets.push({
+      orbit: orad, size: rng.range(2.4, 6.5),
+      speed: rng.range(0.05, 0.20) * (rng.chance(0.5) ? 1 : -1),
+      ph: rng.range(0, TAU), hue: Math.floor(rng.range(0, 360)),
+      ecc: rng.range(0.90, 1.06), tilt: rng.range(-0.16, 0.16),
+      ring: rng.chance(0.22), moons: moons
+    });
+  }
+  sys.belts = [];
+  const beltRads = [rng.range(0.30, 0.42), rng.range(0.62, 0.78)];
+  for (const br of beltRads){
+    const rocks = [];
+    const n = 60 + rng.int(0, 40);
+    for (let i = 0; i < n; i++){
+      rocks.push({a: rng.range(0, TAU), jr: rng.range(-0.022, 0.022),
+                  s: rng.range(0.5, 1.7), sp: rng.range(0.01, 0.035)});
+    }
+    sys.belts.push({r: br, rocks: rocks});
+  }
+  sys.localStars = [];
+  for (let i = 0; i < 130; i++){
+    const a = rng.range(0, TAU), d = Math.sqrt(rng.next()) * 0.97;
+    sys.localStars.push({x: Math.cos(a) * d, y: Math.sin(a) * d,
+                         s: rng.range(0.5, 1.7), tw: rng.range(0, TAU), spd: rng.range(1, 3)});
+  }
+  sys.nebBlobs = [];
+  const nb = 9 + rng.int(0, 5);
+  for (let i = 0; i < nb; i++){
+    const a = rng.range(0, TAU), d = rng.range(0.1, 0.85);
+    sys.nebBlobs.push({x: Math.cos(a) * d, y: Math.sin(a) * d,
+                       r: rng.range(0.22, 0.62), a2: rng.range(0.5, 1), hueOff: rng.range(-30, 50)});
+  }
+  sys.flares = [];
+  for (let i = 0; i < 5; i++){
+    sys.flares.push({r: rng.range(0.22, 0.72), a0: rng.range(0, TAU),
+                     len: rng.range(0.5, 1.5), speed: rng.range(0.08, 0.3) * (rng.chance(0.5) ? 1 : -1)});
+  }
+  sys.giants = [];
+  for (let i = 0; i < 3; i++){
+    sys.giants.push({a: rng.range(0, TAU), r: rng.range(0.18, 0.36), size: rng.range(6, 11)});
+  }
+  sys.dwarfs = [];
+  for (let i = 0; i < 3; i++){
+    const pts = [];
+    for (let k = 0; k < 8; k++) pts.push({x: rng.range(-1, 1), y: rng.range(-1, 1), s: rng.range(0.8, 1.8)});
+    sys.dwarfs.push({a: rng.range(0, TAU), r: rng.range(0.4, 0.72), spread: rng.range(14, 26), pts: pts});
+  }
+  sys.lens = {a: rng.range(0, TAU), r: rng.range(0.5, 0.8)};
+  sys.glyphA = rng.range(0, TAU);
+  r.vis.sys = sys;
+  return sys;
+}
+function visiblePlanetCount(r, sys){
+  return clamp(2 + Math.floor(r.metals / 22), 2, sys.planets.length);
+}
+
+/* ---------- Life web generation ---------- */
+function getLifeWeb(r, sys){
+  const key = r.civilization ? r.civilization.type : 'proto';
+  if (sys.life && sys.life.key === key) return sys.life;
+  const rng = new RNG(hashString(G.universe.seed.toString(16) + ':' + r.id + ':' + key));
+  const L = {key: key, edges: [], branches: [], shrines: [], conduits: [], deadIdx: []};
+  for (let i = 0; i < 7; i++){
+    const links = 1 + rng.int(0, 1);
+    for (let k = 0; k < links; k++){
+      let j = rng.int(0, 6);
+      if (j === i) j = (j + 1) % 7;
+      L.edges.push({a: i, b: j, bow: rng.range(-0.30, 0.30), ph: rng.range(0, TAU)});
+    }
+  }
+  for (let i = 0; i < 7; i++){
+    const arr = [];
+    const nb2 = 3 + rng.int(0, 2);
+    for (let k = 0; k < nb2; k++){
+      arr.push({ang: rng.range(0, TAU), len: rng.range(9, 22), curl: rng.range(-1.2, 1.2),
+                gold: rng.chance(0.35), ph: rng.range(0, TAU)});
+    }
+    L.branches.push(arr);
+  }
+  for (let i = 0; i < 4; i++) L.shrines.push({a: rng.range(0, TAU), r: rng.range(0.16, 0.3)});
+  for (let i = 0; i < 8; i++) L.conduits.push({beltIdx: rng.int(0, 1), a: rng.range(0, TAU), tgt: rng.int(0, 6)});
+  L.deadIdx = [rng.int(0, 6), rng.int(0, 6)];
+  sys.life = L;
+  return L;
+}
+
+/* ---------- Local action FX ---------- */
+function addLocalFx(kind, r){
+  const durs = {compress: 1.6, disperse: 1.6, enrich: 1.8, shield: 1.4, collapse: 2.2, groom: 1.8, eon: 1.6};
+  const fx = {kind: kind, age: 0, dur: durs[kind] || 1.5};
+  if (kind === 'compress'){
+    fx.sparks = [];
+    for (let i = 0; i < 6; i++) fx.sparks.push({a: Math.random() * TAU, d: 0.15 + Math.random() * 0.45, del: Math.random() * 0.35});
+  }
+  if (kind === 'enrich'){
+    fx.parts = [];
+    for (let i = 0; i < 22; i++) fx.parts.push({a: Math.random() * TAU, tgt: i % 7, del: Math.random() * 0.4});
+  }
+  if (kind === 'groom'){
+    fx.sparks = [];
+    for (let i = 0; i < 16; i++) fx.sparks.push({a: Math.random() * TAU, sp: 30 + Math.random() * 70});
+  }
+  visual.localFx.push(fx);
+}
+function computeLocalFx(dt){
+  const st = {orbitMult: 1, nebPull: 1, bright: 0, coreBright: 0, shakeX: 0, shakeY: 0};
+  for (let i = visual.localFx.length - 1; i >= 0; i--){
+    const fx = visual.localFx[i];
+    fx.age += dt;
+    if (fx.age >= fx.dur){ visual.localFx.splice(i, 1); continue; }
+    const pr = fx.age / fx.dur, w = Math.sin(pr * Math.PI);
+    if (fx.kind === 'compress'){ st.nebPull = Math.min(st.nebPull, 1 - 0.35 * w); st.bright += 0.30 * w; }
+    if (fx.kind === 'disperse'){ st.nebPull = Math.max(st.nebPull, 1 + 0.30 * w); st.orbitMult = 1 + 0.06 * w; }
+    if (fx.kind === 'enrich'){ st.coreBright = Math.max(st.coreBright, w); }
+    if (fx.kind === 'collapse'){
+      st.bright += 0.22 * w;
+      const sh = (1 - pr) * 5;
+      st.shakeX += (Math.random() - 0.5) * sh;
+      st.shakeY += (Math.random() - 0.5) * sh;
+    }
+  }
+  return st;
+}
+
+/* ---------- Renderer ---------- */
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const PAD = 48;
+let neb = null;
+
+function regionPos(r){
+  return {x: PAD + r.x * (W - PAD * 2), y: PAD + r.y * (H - PAD * 2)};
+}
+function nodeRadius(r){
+  return clamp(5 + r.stars * 0.08 + r.gas * 0.05, 4, 20);
+}
+function resize(){
+  const rect = document.getElementById('center').getBoundingClientRect();
+  W = Math.max(80, rect.width);
+  H = Math.max(80, rect.height);
+  DPR = window.devicePixelRatio || 1;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  rebuildNebula();
+}
+function rebuildNebula(){
+  if (!G.universe || W < 10) return;
+  const u = G.universe;
+  neb = document.createElement('canvas');
+  neb.width = Math.max(1, Math.round(W));
+  neb.height = Math.max(1, Math.round(H));
+  const nx = neb.getContext('2d');
+  const nrng = new RNG(u.seed ^ 0x0badcafe);
+  const blobs = 10 + nrng.int(0, 6);
+  for (let i = 0; i < blobs; i++){
+    let bx, by;
+    if (u.regions.length && nrng.chance(0.7)){
+      const r = u.regions[nrng.int(0, u.regions.length - 1)];
+      const p = regionPos(r);
+      bx = p.x + nrng.range(-60, 60);
+      by = p.y + nrng.range(-60, 60);
+    } else {
+      bx = nrng.range(0, W);
+      by = nrng.range(0, H);
+    }
+    const rad = nrng.range(70, 230);
+    const col = u.palette.nebula[nrng.int(0, u.palette.nebula.length - 1)];
+    const g = nx.createRadialGradient(bx, by, 0, bx, by, rad);
+    g.addColorStop(0, col);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    nx.fillStyle = g;
+    nx.fillRect(bx - rad, by - rad, rad * 2, rad * 2);
+  }
+  // grain
+  nx.globalAlpha = 0.35;
+  for (let i = 0; i < 130; i++){
+    nx.fillStyle = u.palette.nebula[i % u.palette.nebula.length];
+    const s = nrng.range(0.4, 1.4);
+    nx.fillRect(nrng.range(0, W), nrng.range(0, H), s, s);
+  }
+  nx.globalAlpha = 1;
+}
+function initDust(){
+  visual.dust.length = 0;
+  for (let i = 0; i < 110; i++){
+    visual.dust.push({x: Math.random(), y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.5) * 0.006,
+      s: 0.4 + Math.random() * 1.3, ph: Math.random() * Math.PI * 2});
+  }
+}
+function drawFilamentColor(alpha){
+  const f = G.universe.palette.filament;
+  return hsla(f.h, f.s, f.l, clamp(alpha, 0, 1));
+}
+function easeOutBack(x){
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+}
+function qPoint(x0, y0, cx, cy, x1, y1, tt){
+  const a = 1 - tt;
+  return {x: a * a * x0 + 2 * a * tt * cx + tt * tt * x1,
+          y: a * a * y0 + 2 * a * tt * cy + tt * tt * y1};
+}
+function partialCurve(x0, y0, cx, cy, x1, y1, p){
+  if (p <= 0.02) return;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  for (let k = 1; k <= 14; k++){
+    const pt = qPoint(x0, y0, cx, cy, x1, y1, (k / 14) * p);
+    ctx.lineTo(pt.x, pt.y);
+  }
+  ctx.stroke();
+}
+
+/* ---------- Local star-system renderer ---------- */
+function drawCenterStar(x, y, rad, hue, t, ga){
+  const g = ctx.createRadialGradient(x, y, 0, x, y, rad * 3.4);
+  g.addColorStop(0, hsla(hue, 60, 88, 0.9 * ga));
+  g.addColorStop(0.25, hsla(hue, 75, 65, 0.45 * ga));
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, rad * 3.4, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, rad, 0, TAU);
+  ctx.fillStyle = hsla(hue, 30, 92, ga);
+  ctx.fill();
+}
+function drawSystem(r, t, dt, alpha, zoom, lifeA){
+  const u = G.universe, pal = u.palette;
+  const sys = getSystem(r);
+  const S = Math.min(W, H) * 0.46;
+  const fx = computeLocalFx(dt);
+  const ga = alpha;
+  const nP = visiblePlanetCount(r, sys);
+  const instK = r.instability / 100;
+  const radK = r.radiation / 100;
+  ctx.save();
+  ctx.translate(W / 2 + fx.shakeX, H / 2 + fx.shakeY);
+  ctx.scale(zoom, zoom);
+
+  // --- nebula / dust clouds (gas) ---
+  const nebA = clamp(r.gas / 150, 0.03, 0.5) * ga;
+  for (const b of sys.nebBlobs){
+    const br = b.r * S * fx.nebPull;
+    const bx = b.x * S * fx.nebPull, by = b.y * S * fx.nebPull;
+    const g = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+    g.addColorStop(0, hsla(pal.hue + b.hueOff, 60, 45, nebA * b.a2));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(bx - br, by - br, br * 2, br * 2);
+  }
+  // --- local star particles (stars) ---
+  const nStars = clamp(Math.round(r.stars / 130 * sys.localStars.length) + 10, 10, sys.localStars.length);
+  for (let i = 0; i < nStars; i++){
+    const s = sys.localStars[i];
+    const a = (0.25 + 0.55 * Math.abs(Math.sin(t * s.spd * 0.6 + s.tw))) * ga;
+    ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+    ctx.fillRect(s.x * S, s.y * S, s.s, s.s);
+  }
+  // --- gravitational lens hint (blackHolePotential) ---
+  if (!r.blackHole && r.blackHolePotential > 45){
+    const lv = (r.blackHolePotential - 45) / 55;
+    const lx = Math.cos(sys.lens.a) * sys.lens.r * S * 0.85;
+    const ly = Math.sin(sys.lens.a) * sys.lens.r * S * 0.85;
+    ctx.beginPath(); ctx.arc(lx, ly, 13, 0, TAU);
+    ctx.fillStyle = 'rgba(0,0,0,' + (lv * 0.6 * ga).toFixed(3) + ')';
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(lx, ly, 16, sys.lens.a - 0.7, sys.lens.a + 0.7);
+    ctx.strokeStyle = hsla(pal.hue, 60, 85, lv * 0.4 * ga);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  // --- asteroid belts (metals) ---
+  const beltDensity = clamp(r.metals / 95, 0.12, 1);
+  const goldT = clamp((r.metals - 55) / 65, 0, 1);
+  for (const belt of sys.belts){
+    const nRocks = Math.floor(belt.rocks.length * beltDensity);
+    for (let i = 0; i < nRocks; i++){
+      const rock = belt.rocks[i];
+      const ang = rock.a + t * rock.sp;
+      const rr = (belt.r + rock.jr) * S * fx.orbitMult;
+      const a = (0.25 + goldT * 0.35) * ga;
+      ctx.fillStyle = goldT > 0.2 ? hsla(45, 70, 65, a) : 'rgba(190,200,225,' + a.toFixed(3) + ')';
+      ctx.fillRect(Math.cos(ang) * rr, Math.sin(ang) * rr * 0.96, rock.s, rock.s);
+    }
+  }
+  // --- orbits & planets ---
+  sys._pos.length = 0;
+  for (let i = 0; i < nP; i++){
+    const p = sys.planets[i];
+    const warp = 1 + instK * 0.05 * Math.sin(t * 1.6 + i * 2.1);
+    const orad = p.orbit * S * fx.orbitMult * warp;
+    const ang = p.ph + t * p.speed * (1 + instK * 0.5);
+    // faint full orbit
+    ctx.save();
+    ctx.rotate(p.tilt);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, orad, orad * p.ecc, 0, 0, TAU);
+    ctx.strokeStyle = hsla(pal.hue, 50, 70, 0.07 * ga);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // curved trail behind planet
+    for (let k = 0; k < 3; k++){
+      ctx.beginPath();
+      ctx.ellipse(0, 0, orad, orad * p.ecc, 0, ang - 0.55 + k * 0.17, ang - 0.32 + k * 0.17);
+      ctx.strokeStyle = hsla(pal.hue + 20, 70, 75, (0.05 + k * 0.05) * ga);
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+    ctx.restore();
+    // planet position (apply tilt rotation manually)
+    const ex = Math.cos(ang) * orad, ey = Math.sin(ang) * orad * p.ecc;
+    const px = ex * Math.cos(p.tilt) - ey * Math.sin(p.tilt);
+    const py = ex * Math.sin(p.tilt) + ey * Math.cos(p.tilt);
+    const lifeT = (r.civilization || lifeAvailable(r)) && i < 3 ? 0.45 : 0;
+    let hue = lerp(p.hue, 45, goldT * 0.6);
+    hue = lerp(hue, 150, lifeT);
+    const coreB = fx.coreBright * 0.5;
+    const hg = ctx.createRadialGradient(px, py, 0, px, py, p.size * 3.2);
+    hg.addColorStop(0, hsla(hue, 65, 62 + coreB * 25, (0.4 + coreB * 0.4) * ga));
+    hg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(px, py, p.size * 3.2, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, p.size, 0, TAU);
+    ctx.fillStyle = hsla(hue, 55, 58 + coreB * 30, ga);
+    ctx.fill();
+    if (p.ring){
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(p.tilt * 2 + 0.4);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.size * 2, p.size * 0.7, 0, 0, TAU);
+      ctx.strokeStyle = hsla(hue, 40, 75, 0.4 * ga);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+    for (const m of p.moons){
+      const ma = m.ph + t * m.speed;
+      const mx = px + Math.cos(ma) * (p.size + m.orbit * S);
+      const my = py + Math.sin(ma) * (p.size + m.orbit * S) * 0.8;
+      ctx.beginPath(); ctx.arc(mx, my, m.size, 0, TAU);
+      ctx.fillStyle = 'rgba(200,205,225,' + (0.7 * ga).toFixed(3) + ')';
+      ctx.fill();
+    }
+    sys._pos.push({x: px, y: py, size: p.size});
+  }
+  // --- red dwarf clusters (oldStars) ---
+  const nDwarf = clamp(Math.floor(r.oldStars / 25), 0, 3);
+  for (let i = 0; i < nDwarf; i++){
+    const dC = sys.dwarfs[i];
+    const cx = Math.cos(dC.a) * dC.r * S, cy = Math.sin(dC.a) * dC.r * S;
+    const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, dC.spread * 2.2);
+    hg.addColorStop(0, hsla(12, 70, 55, 0.16 * ga));
+    hg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(cx, cy, dC.spread * 2.2, 0, TAU); ctx.fill();
+    for (const pt of dC.pts){
+      const a = (0.5 + 0.3 * Math.sin(t * 0.7 + pt.x * 9)) * ga;
+      ctx.fillStyle = hsla(15, 80, 65, a);
+      ctx.fillRect(cx + pt.x * dC.spread, cy + pt.y * dC.spread, pt.s, pt.s);
+    }
+  }
+  // --- blue-white giants (massiveStars) ---
+  const nGiant = clamp(Math.floor(r.massiveStars / 5), 0, 3);
+  for (let i = 0; i < nGiant; i++){
+    const gS = sys.giants[i];
+    const gx = Math.cos(gS.a) * gS.r * S, gy = Math.sin(gS.a) * gS.r * S;
+    const flick = 0.75 + 0.25 * Math.sin(t * (2.5 + instK * 5) + i * 7.3);
+    const gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, gS.size * 4 * flick);
+    gg.addColorStop(0, hsla(215, 80, 88, 0.85 * flick * ga));
+    gg.addColorStop(0.4, hsla(220, 85, 65, 0.3 * flick * ga));
+    gg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gg;
+    ctx.beginPath(); ctx.arc(gx, gy, gS.size * 4 * flick, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(gx, gy, gS.size * 0.6, 0, TAU);
+    ctx.fillStyle = hsla(210, 40, 95, ga);
+    ctx.fill();
+  }
+  // --- central object ---
+  if (r.blackHole){
+    const bh = r.blackHole;
+    const bhR = 10 + bh.mass * 18;
+    const og = ctx.createRadialGradient(0, 0, bhR * 0.4, 0, 0, bhR * 4);
+    og.addColorStop(0, 'rgba(0,0,0,' + (0.95 * ga).toFixed(3) + ')');
+    og.addColorStop(0.5, hsla(pal.hue + 290, 80, 38, 0.3 * ga));
+    og.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = og;
+    ctx.beginPath(); ctx.arc(0, 0, bhR * 4, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, bhR, 0, TAU);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    for (let k = 0; k < 3; k++){
+      ctx.save();
+      ctx.rotate(t * (k === 1 ? -0.35 : 0.5 + k * 0.1) + k * 1.7);
+      ctx.scale(1, 0.40 + k * 0.05);
+      ctx.beginPath();
+      ctx.arc(0, 0, bhR + 6 + k * 6, 0.2, TAU - 0.3);
+      if (bh.contamination > 0.15) ctx.setLineDash([12 * (1 - bh.contamination) + 2, 3 + bh.contamination * 10]);
+      ctx.strokeStyle = k === 0 ? pal.ring : hsla(pal.hue + k * 25, 85, 65, (0.6 - k * 0.15) * ga);
+      ctx.lineWidth = 2 - k * 0.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    for (let i = 0; i < 12; i++){
+      const sa = t * 1.2 + i * TAU / 12;
+      const sr = bhR + 8 + 6 * Math.sin(t * 0.9 + i * 2.4);
+      ctx.fillStyle = hsla(pal.hue + 30, 80, 75, 0.5 * ga);
+      ctx.fillRect(Math.cos(sa) * sr, Math.sin(sa) * sr * 0.45, 1.4, 1.4);
+    }
+  } else if (sys.binary){
+    const ba = t * 0.4;
+    drawCenterStar(Math.cos(ba) * 22, Math.sin(ba) * 14, 9, pal.hue + 20, t, ga);
+    drawCenterStar(-Math.cos(ba) * 16, -Math.sin(ba) * 10, 6.5, pal.hue + 60, t, ga);
+  } else {
+    const pulse = 1 + 0.05 * Math.sin(t * 1.8);
+    drawCenterStar(0, 0, 13 * pulse, pal.hue + 20, t, ga);
+  }
+  // --- radiation flares & storms ---
+  if (r.radiation > 10){
+    for (let i = 0; i < sys.flares.length; i++){
+      const f = sys.flares[i];
+      const a0 = f.a0 + t * f.speed;
+      ctx.beginPath();
+      ctx.arc(0, 0, f.r * S, a0, a0 + f.len);
+      ctx.strokeStyle = hsla(8 + i * 7, 90, 58, radK * 0.45 * ga);
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
+    if (r.radiation > 35){
+      for (let i = 0; i < 2; i++){
+        const prog = (t * 0.13 + i * 0.45) % 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, prog * S * 0.95, 0, TAU);
+        ctx.strokeStyle = hsla(18, 95, 55, radK * 0.3 * (1 - prog) * ga);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+    }
+  }
+  // --- instability shimmer ---
+  if (r.instability > 38){
+    for (let i = 0; i < 2; i++){
+      const yy = (((t * 0.21 + i * 0.41) % 1) * 2 - 1) * S * 0.9;
+      const xo = Math.sin(t * 5 + i * 3) * 8 * instK;
+      ctx.fillStyle = hsla(pal.hue + 120, 80, 65, instK * 0.10 * ga);
+      ctx.fillRect(-S + xo, yy, S * 2, 1.4);
+    }
+  }
+  // --- civilization structures (system view) ---
+  if (r.civilization && sys._pos.length){
+    const c = r.civilization;
+    const hp = sys._pos[0];
+    ctx.save();
+    ctx.translate(hp.x, hp.y);
+    ctx.rotate(t * 0.6);
+    ctx.beginPath();
+    ctx.setLineDash([4, 3]);
+    ctx.arc(0, 0, hp.size + 7, 0, TAU);
+    ctx.strokeStyle = hsla(170, 70, 62, 0.7 * ga);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    for (let i = 0; i < 4; i++){
+      const sa = t * 2.2 + i * TAU / 4;
+      const sx = hp.x + Math.cos(sa) * (hp.size + 13);
+      const sy = hp.y + Math.sin(sa) * (hp.size + 13) * 0.8;
+      ctx.fillStyle = hsla(170, 80, 75, 0.85 * ga);
+      ctx.fillRect(sx - 1.2, sy - 1.2, 2.4, 2.4);
+    }
+    const nLink = Math.min(3, sys._pos.length);
+    for (let i = 0; i < nLink; i++){
+      const a2 = sys._pos[i], b2 = sys._pos[(i + 1) % nLink];
+      ctx.beginPath();
+      ctx.moveTo(a2.x, a2.y); ctx.lineTo(b2.x, b2.y);
+      ctx.strokeStyle = hsla(170, 70, 65, 0.14 * ga);
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      const pp = (t * 0.4 + i * 0.33) % 1;
+      ctx.beginPath();
+      ctx.arc(lerp(a2.x, b2.x, pp), lerp(a2.y, b2.y, pp), 1.6, 0, TAU);
+      ctx.fillStyle = hsla(170, 90, 80, 0.9 * ga);
+      ctx.fill();
+    }
+    const gx = Math.cos(sys.glyphA + t * 0.05) * S * 0.5;
+    const gy = Math.sin(sys.glyphA + t * 0.05) * S * 0.5;
+    ctx.save();
+    ctx.translate(gx, gy);
+    ctx.rotate(t * 0.9);
+    ctx.beginPath();
+    ctx.moveTo(0, -5); ctx.lineTo(4.3, 2.5); ctx.lineTo(-4.3, 2.5); ctx.closePath();
+    ctx.strokeStyle = hsla(170, 80, 70, 0.8 * ga);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+  }
+  // --- shield shell ---
+  if (r.shield > 0){
+    const shellA = 0.10 + 0.04 * Math.sin(t * 1.5);
+    ctx.beginPath(); ctx.arc(0, 0, S * 0.55, 0, TAU);
+    ctx.fillStyle = hsla(205, 80, 65, shellA * ga);
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, S * 0.55, 0, TAU);
+    ctx.strokeStyle = hsla(200, 85, 75, (0.3 + 0.1 * Math.sin(t * 2)) * ga);
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+  // --- life web overlay ---
+  if (lifeA > 0.01 && lifeAvailable(r)) drawLifeWeb(r, sys, t, S, lifeA * ga, nP);
+  // --- local action FX ---
+  drawLocalFx(r, sys, t, S, ga, nP);
+  // --- brightness spike ---
+  if (fx.bright > 0.01){
+    const bgr = ctx.createRadialGradient(0, 0, 0, 0, 0, S);
+    bgr.addColorStop(0, 'rgba(255,255,255,' + (fx.bright * ga).toFixed(3) + ')');
+    bgr.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = bgr;
+    ctx.fillRect(-S, -S, S * 2, S * 2);
+  }
+  ctx.restore();
+}
+
+/* ---------- Life / civilization spread renderer ---------- */
+function drawLifeWeb(r, sys, t, S, a, nP){
+  const L = getLifeWeb(r, sys);
+  const c = r.civilization;
+  const pos = sys._pos;
+  if (!pos.length) return;
+  const grow = function(i){ return clamp((t - view.lifeEnterT) * 0.7 - i * 0.10, 0, 1); };
+  const align = c ? c.alignment : 0.6;
+  const fear = c ? c.fear : 0;
+  const jit = (1 - align) * 6;
+  const hueMain = L.key === 'Star Shepherds' ? 48 :
+                  L.key === 'Black-Hole Cult' ? 282 :
+                  L.key === 'Entropy Miners' ? 28 :
+                  L.key === 'Silent Gardeners' ? 130 : 160;
+  ctx.save();
+  if (fear > 0.3) ctx.setLineDash([8, 3 + fear * 14]);
+  // --- luminous web edges between worlds ---
+  const nEdges = clamp(Math.floor(L.edges.length * (0.3 + r.metals / 130)), 3, L.edges.length);
+  for (let i = 0; i < nEdges; i++){
+    const e = L.edges[i];
+    if (e.a >= nP || e.b >= nP) continue;
+    const A = pos[e.a], B = pos[e.b];
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const dd = Math.sqrt(dx * dx + dy * dy) || 1;
+    const wob = Math.sin(t * 0.9 + e.ph) * jit;
+    const cx = mx + (-dy / dd) * (dd * e.bow + wob);
+    const cy = my + (dx / dd) * (dd * e.bow + wob);
+    ctx.strokeStyle = hsla(hueMain, 75, 65, 0.5 * a);
+    ctx.lineWidth = 1.3;
+    partialCurve(A.x, A.y, cx, cy, B.x, B.y, grow(i));
+    if (grow(i) >= 1){
+      const pp = (t * 0.25 + e.ph) % 1;
+      const pt = qPoint(A.x, A.y, cx, cy, B.x, B.y, pp);
+      ctx.fillStyle = hsla(hueMain, 90, 80, 0.9 * a);
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 1.5, 0, TAU); ctx.fill();
+    }
+  }
+  ctx.setLineDash([]);
+  // --- node halos on living worlds ---
+  for (let i = 0; i < Math.min(nP, 4); i++){
+    const p = pos[i];
+    const hg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4.5);
+    hg.addColorStop(0, hsla(hueMain, 80, 65, 0.30 * grow(i) * a));
+    hg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 4.5, 0, TAU); ctx.fill();
+  }
+  // --- type-specific structures ---
+  if (L.key === 'Star Shepherds'){
+    for (let k = 0; k < 3; k++){
+      const cr = (0.10 + k * 0.045) * S;
+      const gap = 0.5 + fear * 1.2;
+      for (let seg = 0; seg < 4; seg++){
+        const sa = seg * TAU / 4 + t * 0.15 * (k % 2 ? -1 : 1);
+        ctx.beginPath();
+        ctx.arc(0, 0, cr, sa, sa + TAU / 4 - gap * 0.3);
+        ctx.strokeStyle = hsla(48, 80, 70, 0.55 * grow(k) * a);
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      }
+    }
+    for (let k = 0; k < 4; k++){
+      const ta = k * TAU / 4 + 0.4;
+      const tx = Math.cos(ta) * 0.21 * S, ty = Math.sin(ta) * 0.21 * S;
+      ctx.save(); ctx.translate(tx, ty); ctx.rotate(ta);
+      ctx.beginPath();
+      ctx.moveTo(0, -4); ctx.lineTo(3.5, 3); ctx.lineTo(-3.5, 3); ctx.closePath();
+      ctx.fillStyle = hsla(48, 85, 75, 0.7 * grow(k) * a);
+      ctx.fill();
+      ctx.restore();
+    }
+  } else if (L.key === 'Black-Hole Cult'){
+    for (let i = 0; i < Math.min(nP, 5); i++){
+      const p = pos[i];
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      const gp = grow(i);
+      ctx.lineTo(p.x * (1 - gp), p.y * (1 - gp));
+      ctx.strokeStyle = hsla(282, 70, 70, 0.45 * a);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      const pp = 1 - ((t * 0.5 + i * 0.27) % 1) * gp;
+      ctx.fillStyle = hsla(282, 90, 82, 0.9 * a);
+      ctx.beginPath(); ctx.arc(p.x * pp, p.y * pp, 1.6, 0, TAU); ctx.fill();
+    }
+    for (let i = 0; i < L.shrines.length; i++){
+      const sh = L.shrines[i];
+      const sx = Math.cos(sh.a) * sh.r * S, sy = Math.sin(sh.a) * sh.r * S;
+      ctx.save(); ctx.translate(sx, sy); ctx.rotate(t * 0.3 + i);
+      ctx.beginPath();
+      for (let v = 0; v < 5; v++){
+        const va = v * TAU / 5 - Math.PI / 2;
+        if (v === 0) ctx.moveTo(Math.cos(va) * 5, Math.sin(va) * 5);
+        else ctx.lineTo(Math.cos(va) * 5, Math.sin(va) * 5);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(5,2,12,' + (0.85 * grow(i) * a).toFixed(3) + ')';
+      ctx.fill();
+      ctx.strokeStyle = hsla(282, 85, 70, 0.8 * grow(i) * a);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+  } else if (L.key === 'Entropy Miners'){
+    for (let i = 0; i < L.conduits.length; i++){
+      const cd = L.conduits[i];
+      if (cd.tgt >= nP) continue;
+      const belt = sys.belts[cd.beltIdx];
+      const bx = Math.cos(cd.a) * belt.r * S, by = Math.sin(cd.a) * belt.r * S * 0.96;
+      const p = pos[cd.tgt];
+      ctx.strokeStyle = hsla(28, 90, 58, 0.5 * a);
+      ctx.lineWidth = 1.2;
+      partialCurve(bx, by, (bx + p.x) / 2, (by + p.y) / 2 - 14, p.x, p.y, grow(i % 5));
+      ctx.save(); ctx.translate(bx, by); ctx.rotate(Math.PI / 4);
+      const pulse2 = 0.7 + 0.3 * Math.sin(t * 3 + i);
+      ctx.fillStyle = hsla(28, 95, 62, pulse2 * grow(i % 5) * a);
+      ctx.fillRect(-2.4, -2.4, 4.8, 4.8);
+      ctx.restore();
+    }
+  } else if (L.key === 'Silent Gardeners'){
+    for (let i = 0; i < Math.min(nP, 4); i++){
+      const p = pos[i];
+      const branches = L.branches[i];
+      for (let k = 0; k < branches.length; k++){
+        const br = branches[k];
+        const gp = grow(i + k * 0.5);
+        if (gp <= 0.02) continue;
+        const sway = Math.sin(t * 0.5 + br.ph) * 0.15;
+        const ba = br.ang + sway;
+        const ex = p.x + Math.cos(ba) * br.len;
+        const ey = p.y + Math.sin(ba) * br.len;
+        const cx = p.x + Math.cos(ba + br.curl * 0.5) * br.len * 0.6;
+        const cy = p.y + Math.sin(ba + br.curl * 0.5) * br.len * 0.6;
+        ctx.strokeStyle = br.gold ? hsla(48, 80, 65, 0.6 * a) : hsla(130, 75, 58, 0.6 * a);
+        ctx.lineWidth = 1.1;
+        partialCurve(p.x, p.y, cx, cy, ex, ey, gp);
+        if (gp >= 1){
+          ctx.fillStyle = br.gold ? hsla(48, 90, 75, 0.85 * a) : hsla(130, 85, 70, 0.85 * a);
+          ctx.beginPath(); ctx.arc(ex, ey, 1.7 + 0.5 * Math.sin(t + k), 0, TAU); ctx.fill();
+        }
+      }
+    }
+  }
+  // --- black-hole curiosity tendrils ---
+  const cur = c ? c.blackHoleCuriosity : 0;
+  if (cur > 0.35 && (r.blackHole || r.blackHolePotential > 45)){
+    for (let i = 0; i < 2 && i < nP; i++){
+      const p = pos[i];
+      const gp = grow(i + 1);
+      ctx.strokeStyle = hsla(282, 80, 70, cur * 0.5 * a);
+      ctx.lineWidth = 0.9;
+      partialCurve(p.x, p.y, p.x * 0.5 + 10, p.y * 0.5 - 10, 0, 0, gp);
+    }
+  }
+  // --- radiation scars / dead zones ---
+  if (r.radiation > 35){
+    for (const di of L.deadIdx){
+      if (di >= nP) continue;
+      const p = pos[di];
+      const flick = 0.5 + 0.5 * Math.sin(t * 6 + di * 4);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 2.4, 0, TAU);
+      ctx.fillStyle = hsla(5, 80, 30, (r.radiation / 100) * 0.35 * a);
+      ctx.fill();
+      ctx.strokeStyle = hsla(5, 95, 55, (r.radiation / 100) * 0.5 * flick * a);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+/* ---------- Local action FX drawing ---------- */
+function drawLocalFx(r, sys, t, S, ga, nP){
+  const pal = G.universe.palette;
+  for (const fx of visual.localFx){
+    const pr = clamp(fx.age / fx.dur, 0, 1);
+    const w = Math.sin(pr * Math.PI);
+    if (fx.kind === 'compress'){
+      ctx.beginPath(); ctx.arc(0, 0, (1 - pr) * S * 0.95 + 6, 0, TAU);
+      ctx.strokeStyle = hsla(215, 85, 75, w * 0.7 * ga);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      for (const s of fx.sparks){
+        const ap = clamp((pr - s.del) / 0.4, 0, 1);
+        if (ap <= 0) continue;
+        const aw = Math.sin(ap * Math.PI);
+        const sx = Math.cos(s.a) * s.d * S, sy = Math.sin(s.a) * s.d * S;
+        const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 12);
+        sg.addColorStop(0, 'rgba(255,255,255,' + (aw * 0.9 * ga).toFixed(3) + ')');
+        sg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sg;
+        ctx.beginPath(); ctx.arc(sx, sy, 12, 0, TAU); ctx.fill();
+      }
+    } else if (fx.kind === 'disperse'){
+      for (let k = 0; k < 2; k++){
+        const rr = clamp(pr - k * 0.12, 0, 1) * S;
+        ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU);
+        ctx.strokeStyle = hsla(pal.hue + 60, 70, 70, (1 - pr) * (0.5 - k * 0.2) * ga);
+        ctx.lineWidth = 6 - k * 3;
+        ctx.stroke();
+      }
+    } else if (fx.kind === 'enrich'){
+      for (const p2 of fx.parts){
+        const tp = clamp((pr - p2.del) / (1 - p2.del + 0.001), 0, 1);
+        if (tp <= 0 || tp >= 1) continue;
+        const tgt = sys._pos[p2.tgt % Math.max(1, nP)] || {x: 0, y: 0};
+        const e = 1 - Math.pow(1 - tp, 2);
+        const px = lerp(Math.cos(p2.a) * S, tgt.x, e);
+        const py = lerp(Math.sin(p2.a) * S, tgt.y, e);
+        ctx.fillStyle = hsla(46, 95, 70, (1 - tp * 0.5) * ga);
+        ctx.beginPath(); ctx.arc(px, py, 1.8, 0, TAU); ctx.fill();
+      }
+    } else if (fx.kind === 'shield'){
+      const rr = easeOutBack(pr) * S * 0.55;
+      ctx.beginPath(); ctx.arc(0, 0, Math.max(0, rr), 0, TAU);
+      ctx.strokeStyle = hsla(200, 90, 78, (1 - pr * 0.6) * 0.8 * ga);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      for (let k = 0; k < 2; k++){
+        const da = t * 2 + k * Math.PI;
+        ctx.beginPath(); ctx.arc(0, 0, rr + 5, da, da + 0.8);
+        ctx.strokeStyle = hsla(8, 90, 60, w * 0.5 * ga);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    } else if (fx.kind === 'collapse'){
+      const gpos = sys.giants[0];
+      const ox = Math.cos(gpos.a) * gpos.r * S, oy = Math.sin(gpos.a) * gpos.r * S;
+      if (pr < 0.4){
+        const ip = pr / 0.4;
+        const ig = ctx.createRadialGradient(ox, oy, 0, ox, oy, (1 - ip) * 26 + 3);
+        ig.addColorStop(0, 'rgba(255,255,255,' + (0.95 * ga).toFixed(3) + ')');
+        ig.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = ig;
+        ctx.beginPath(); ctx.arc(ox, oy, (1 - ip) * 26 + 3, 0, TAU); ctx.fill();
+      } else {
+        const sp = (pr - 0.4) / 0.6;
+        ctx.beginPath(); ctx.arc(ox, oy, sp * S * 1.1, 0, TAU);
+        ctx.strokeStyle = 'rgba(255,255,255,' + ((1 - sp) * 0.7 * ga).toFixed(3) + ')';
+        ctx.lineWidth = 3 - sp * 2;
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(ox, oy, sp * S * 0.7, 0, TAU);
+        ctx.strokeStyle = hsla(20, 90, 60, (1 - sp) * 0.5 * ga);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    } else if (fx.kind === 'groom'){
+      const bhR = r.blackHole ? 10 + r.blackHole.mass * 18 : 14;
+      ctx.beginPath(); ctx.arc(0, 0, bhR + 14 + 4 * Math.sin(pr * Math.PI * 3), 0, TAU);
+      ctx.strokeStyle = hsla(pal.hue + 40, 90, 80, w * 0.7 * ga);
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      for (const s of fx.sparks){
+        const sr = bhR + pr * s.sp;
+        ctx.fillStyle = hsla(28, 90, 60, (1 - pr) * 0.8 * ga);
+        ctx.fillRect(Math.cos(s.a) * sr, Math.sin(s.a) * sr, 1.6, 1.6);
+      }
+    } else if (fx.kind === 'eon'){
+      ctx.beginPath(); ctx.arc(0, 0, pr * S, 0, TAU);
+      ctx.strokeStyle = hsla(pal.hue, 80, 70, (1 - pr) * 0.3 * ga);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+}
+
+/* ---------- Zoom UI ---------- */
+function updateZoomUI(){
+  const r = selectedRegion();
+  const focus = focusRegion();
+  const busy = !!view.anim || G.over || G.dying;
+  const zb = document.getElementById('zoomBtn');
+  const lb = document.getElementById('lifeBtn');
+  const bb = document.getElementById('backBtn2');
+  zb.classList.toggle('hidden', view.scale !== 'web');
+  zb.disabled = busy || !r;
+  zb.title = r ? 'Dive into the ' + r.name : 'Select a region first';
+  lb.classList.toggle('hidden', !(view.scale === 'system' && lifeAvailable(focus) && !view.anim));
+  lb.disabled = busy;
+  bb.classList.toggle('hidden', view.scale === 'web');
+  bb.textContent = view.scale === 'life' ? '↩ Return to System' : '↩ Return to Cosmic Web';
+  bb.disabled = busy;
+  const vc = document.getElementById('viewControls');
+  vc.classList.toggle('hidden', view.scale === 'web');
+  document.getElementById('backBtn').textContent = view.scale === 'life' ? '⟵ System' : '⟵ Cosmic Web';
+  document.getElementById('viewLabel').textContent =
+    focus ? (view.scale === 'life' ? 'LIFE WEB · ' : 'SYSTEM · ') + focus.name : '';
+  const sp = document.getElementById('storyPanel');
+  if (focus && view.scale !== 'web' && G.universe){
+    sp.classList.remove('hidden');
+    document.getElementById('storyTitle').textContent = 'Local survey';
+    document.getElementById('storyText').textContent = systemStory(focus, G.universe);
+  } else {
+    sp.classList.add('hidden');
+  }
+}
+function draw(t, dt){
+  if (!W || !H) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const u = G.universe;
+  // background
+  const bg = ctx.createLinearGradient(0, 0, W * 0.3, H);
+  if (u){ bg.addColorStop(0, u.palette.bg1); bg.addColorStop(1, u.palette.bg0); }
+  else { bg.addColorStop(0, '#0a0e1c'); bg.addColorStop(1, '#05070f'); }
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  if (!u) return;
+
+  // ambient dust (screen space, shared by all scales)
+  for (const d of visual.dust){
+    d.x += d.vx * dt; d.y += d.vy * dt;
+    if (d.x < 0) d.x += 1; if (d.x > 1) d.x -= 1;
+    if (d.y < 0) d.y += 1; if (d.y > 1) d.y -= 1;
+    const a = 0.12 + 0.1 * Math.sin(t * 0.9 + d.ph);
+    ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')';
+    ctx.fillRect(d.x * W, d.y * H, d.s, d.s);
+  }
+
+  // view transition bookkeeping
+  let webAlpha = 1, sysAlpha = 0, sysZoom = 1, lifeAlpha = 0, camZ = 1;
+  const anim = view.anim;
+  if (anim){
+    const k0 = easeIO(clamp(anim.t, 0, 1));
+    if (anim.from === 'web' || anim.to === 'web'){
+      const k = (anim.to === 'web') ? 1 - k0 : k0;
+      camZ = 1 + k * 5.5;
+      webAlpha = clamp(1 - (k - 0.30) / 0.32, 0, 1);
+      sysAlpha = clamp((k - 0.40) / 0.38, 0, 1);
+      sysZoom = lerp(0.8, 1, k);
+    } else {
+      const k = (anim.to === 'life') ? k0 : 1 - k0;
+      webAlpha = 0; sysAlpha = 1;
+      sysZoom = 1 + k * 1.3;
+      lifeAlpha = k;
+    }
+    anim.t += dt / anim.dur;
+    if (anim.t >= 1){
+      view.scale = anim.to;
+      view.anim = null;
+      if (view.scale === 'web') view.focusId = null;
+      updateUI();
+    }
+  } else if (view.scale === 'system'){ webAlpha = 0; sysAlpha = 1; sysZoom = 1; }
+  else if (view.scale === 'life'){ webAlpha = 0; sysAlpha = 1; sysZoom = 2.3; lifeAlpha = 1; }
+
+  const focus = focusRegion();
+  if (webAlpha > 0.01){
+    ctx.save();
+    if (camZ > 1.001 && focus){
+      const fp = regionPos(focus);
+      ctx.translate(W / 2, H / 2);
+      ctx.scale(camZ, camZ);
+      ctx.translate(-fp.x, -fp.y);
+    }
+    drawWebLayer(t, dt);
+    ctx.restore();
+    if (webAlpha < 0.999){
+      ctx.globalAlpha = 1 - webAlpha;
+      ctx.fillStyle = u.palette.bg0;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
+  }
+  if (sysAlpha > 0.01 && focus){
+    drawSystem(focus, t, dt, sysAlpha, sysZoom, lifeAlpha);
+  }
+  drawOverlays(t, dt);
+}
+
+function drawWebLayer(t, dt){
+  const u = G.universe;
+
+  // nebula with slow drift
+  if (neb){
+    ctx.globalAlpha = 1;
+    ctx.drawImage(neb, Math.sin(t * 0.021) * 9, Math.cos(t * 0.017) * 9);
+  }
+
+  // eon pulse (heartbeat wave)
+  if (visual.pulse){
+    visual.pulse.age += dt;
+    const pr = visual.pulse.age / 1.6;
+    if (pr >= 1) visual.pulse = null;
+    else {
+      const maxR = Math.max(W, H) * 0.75;
+      for (let k = 0; k < 2; k++){
+        const rr = clamp(pr - k * 0.08, 0, 1) * maxR;
+        ctx.beginPath();
+        ctx.arc(W / 2, H / 2, rr, 0, Math.PI * 2);
+        ctx.strokeStyle = hsla(u.palette.hue, 80, 70, (1 - pr) * (0.3 - k * 0.12));
+        ctx.lineWidth = 2 - k;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // filaments
+  for (let i = 0; i < u.edges.length; i++){
+    const e = u.edges[i];
+    if (e.glow > 0) e.glow = Math.max(0, e.glow - dt);
+    const A = regionPos(u.regions[e.a]);
+    const B = regionPos(u.regions[e.b]);
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const cpx = mx + (-dy / dist) * dist * e.bow;
+    const cpy = my + (dx / dist) * dist * e.bow;
+    const shimmer = 0.10 + 0.05 * Math.sin(t * 0.8 + i * 1.7);
+    const alpha = shimmer + e.glow * 0.25;
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.quadraticCurveTo(cpx, cpy, B.x, B.y);
+    ctx.strokeStyle = drawFilamentColor(alpha);
+    ctx.lineWidth = 1 + e.glow * 0.8;
+    ctx.stroke();
+  }
+
+  // regions
+  for (const r of u.regions){
+    const p = regionPos(r);
+    const rad = nodeRadius(r);
+    const pulse = 1 + Math.sin(t * r.vis.speed + r.vis.phase) * 0.08;
+    const bright = clamp(0.22 + r.stars / 90 + r.massiveStars / 60, 0.18, 0.85);
+
+    // gas halo
+    if (r.gas > 18){
+      const gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad * 3.4);
+      gg.addColorStop(0, hsla(u.palette.hue, 60, 50, clamp(r.gas / 600, 0, 0.2)));
+      gg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad * 3.4, 0, Math.PI * 2); ctx.fill();
+    }
+    // star glow
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad * 2.6 * pulse);
+    g.addColorStop(0, hsla(u.palette.hue + 18, 50, 80, bright));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(p.x, p.y, rad * 2.6 * pulse, 0, Math.PI * 2); ctx.fill();
+    // core
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, rad * 0.62 * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = r.metals > 50 ? hsla(45, 70, 80, 0.95) : u.palette.star;
+    ctx.fill();
+
+    // star twinkles
+    const nTw = Math.min(r.vis.spark.length, Math.ceil(r.stars / 18));
+    for (let k = 0; k < nTw; k++){
+      const sp = r.vis.spark[k];
+      const ang = sp.a + t * 0.12 * sp.dir;
+      const tx = p.x + Math.cos(ang) * sp.d * rad * 2.0;
+      const ty = p.y + Math.sin(ang) * sp.d * rad * 2.0;
+      const ta = 0.3 + 0.5 * Math.abs(Math.sin(t * 1.7 + sp.ph));
+      ctx.fillStyle = 'rgba(255,255,255,' + ta.toFixed(3) + ')';
+      ctx.fillRect(tx, ty, sp.s, sp.s);
+    }
+    // exotic star sparkle
+    if (r.exoticStars > 0){
+      const ex = p.x + rad * 1.4, ey = p.y - rad * 1.4;
+      const ea = 0.5 + 0.5 * Math.sin(t * 3 + r.vis.phase);
+      ctx.strokeStyle = hsla(300, 90, 70, ea);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(ex - 4, ey); ctx.lineTo(ex + 4, ey);
+      ctx.moveTo(ex, ey - 4); ctx.lineTo(ex, ey + 4);
+      ctx.stroke();
+    }
+    // shield ring
+    if (r.shield > 0){
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rad + 7, 0, Math.PI * 2);
+      ctx.strokeStyle = hsla(u.palette.hue + 60, 80, 70, 0.35 + 0.1 * Math.sin(t * 2));
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rad + 7, -Math.PI / 2, -Math.PI / 2 + (r.shield / 4) * Math.PI * 2);
+      ctx.strokeStyle = u.palette.accent2;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    // civilization glyph
+    if (r.civilization){
+      const ca = t * 0.7 + r.vis.phase;
+      const cx = p.x + Math.cos(ca) * (rad + 10);
+      const cy = p.y + Math.sin(ca) * (rad + 10);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t * 1.5);
+      ctx.strokeStyle = u.palette.accent2;
+      ctx.lineWidth = 1.4;
+      ctx.strokeRect(-3, -3, 6, 6);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rad + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = hsla(170, 70, 60, 0.12);
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    }
+    // black hole
+    if (r.blackHole){
+      const bh = r.blackHole;
+      const bhR = 4 + bh.mass * 11;
+      const og = ctx.createRadialGradient(p.x, p.y, bhR * 0.4, p.x, p.y, bhR * 3);
+      og.addColorStop(0, 'rgba(0,0,0,0.9)');
+      og.addColorStop(0.5, hsla(u.palette.hue + 290, 80, 40, 0.25));
+      og.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = og;
+      ctx.beginPath(); ctx.arc(p.x, p.y, bhR * 3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, bhR, 0, Math.PI * 2);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      // accretion rings
+      for (let k = 0; k < 2; k++){
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(t * (k === 0 ? 0.6 : -0.4) + k * 1.3);
+        ctx.scale(1, 0.42);
+        ctx.beginPath();
+        ctx.arc(0, 0, bhR + 4 + k * 4, 0.3, Math.PI * 1.7);
+        ctx.strokeStyle = k === 0 ? u.palette.ring : hsla(u.palette.hue, 85, 65, 0.55);
+        ctx.lineWidth = 1.6 - k * 0.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    // labels
+    if (r.id === G.selectedId || r.id === G.hoverId || r.blackHole || r.civilization){
+      ctx.font = '10px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = r.id === G.selectedId ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.38)';
+      ctx.fillText(r.name, p.x, p.y + rad + 16);
+    }
+  }
+
+  // selection / hover rings
+  const sel = selectedRegion();
+  if (sel){
+    const p = regionPos(sel);
+    const rad = nodeRadius(sel) + 12;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(t * 0.8);
+    ctx.beginPath();
+    ctx.setLineDash([6, 5]);
+    ctx.arc(0, 0, rad, 0, Math.PI * 2);
+    ctx.strokeStyle = u.palette.accent;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+  if (G.hoverId !== null && G.hoverId !== G.selectedId && u.regions[G.hoverId]){
+    const hr = u.regions[G.hoverId];
+    const p = regionPos(hr);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, nodeRadius(hr) + 9, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ripples
+  for (let i = visual.ripples.length - 1; i >= 0; i--){
+    const rp = visual.ripples[i];
+    rp.age += dt;
+    const pr = rp.age / rp.dur;
+    if (pr >= 1){ visual.ripples.splice(i, 1); continue; }
+    const px = PAD + rp.rx * (W - PAD * 2);
+    const py = PAD + rp.ry * (H - PAD * 2);
+    ctx.beginPath();
+    if (rp.mode === 'in'){
+      ctx.arc(px, py, (1 - pr) * 70 + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = rp.color;
+      ctx.globalAlpha = Math.sin(pr * Math.PI) * 0.7;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    } else if (rp.mode === 'flash'){
+      ctx.arc(px, py, pr * 60 + 4, 0, Math.PI * 2);
+      ctx.fillStyle = rp.color;
+      ctx.globalAlpha = (1 - pr) * 0.6;
+      ctx.fill();
+    } else {
+      ctx.arc(px, py, pr * 80 + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = rp.color;
+      ctx.globalAlpha = (1 - pr) * 0.7;
+      ctx.lineWidth = rp.mode === 'ring' ? 2.2 : 1.4;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // particles
+  for (let i = visual.particles.length - 1; i >= 0; i--){
+    const pt = visual.particles[i];
+    pt.age += dt;
+    const pr = pt.age / pt.dur;
+    if (pr >= 1){ visual.particles.splice(i, 1); continue; }
+    const px = PAD + pt.rx * (W - PAD * 2) + pt.vx * pt.age;
+    const py = PAD + pt.ry * (H - PAD * 2) + pt.vy * pt.age;
+    ctx.globalAlpha = (1 - pr) * 0.9;
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(px, py, pt.size, pt.size);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawOverlays(t, dt){
+  const u = G.universe;
+  if (!u) return;
+  // birth bloom
+  if (visual.birthT >= 0 && visual.birthT < 1){
+    visual.birthT += dt / 2.2;
+    const bt = clamp(visual.birthT, 0, 1);
+    const maxR = Math.max(W, H);
+    const bg2 = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, lerp(maxR * 0.1, maxR, bt));
+    bg2.addColorStop(0, hsla(u.palette.hue, 70, 85, (1 - bt) * 0.9));
+    bg2.addColorStop(1, hsla(u.palette.hue, 70, 60, 0));
+    ctx.fillStyle = bg2;
+    ctx.fillRect(0, 0, W, H);
+    if (visual.birthT >= 1) visual.birthT = -1;
+  }
+  // death transition
+  if (visual.deathT >= 0){
+    if (visual.deathT < 1) visual.deathT = Math.min(1, visual.deathT + dt / 1.9);
+    const dtv = visual.deathT;
+    ctx.fillStyle = 'rgba(0,0,0,' + (dtv * 0.82).toFixed(3) + ')';
+    ctx.fillRect(0, 0, W, H);
+    const ringR = (1 - dtv) * Math.max(W, H) * 0.7;
+    ctx.beginPath();
+    ctx.arc(W / 2, H / 2, Math.max(0, ringR), 0, Math.PI * 2);
+    ctx.strokeStyle = hsla(u.palette.hue, 80, 70, dtv * 0.8);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+}
+
+/* ---------- Input ---------- */
+function pickRegion(mx, my){
+  const u = G.universe;
+  if (!u) return null;
+  let best = null, bestD = 1e9;
+  for (const r of u.regions){
+    const p = regionPos(r);
+    const dx = p.x - mx, dy = p.y - my;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d < nodeRadius(r) + 10 && d < bestD){ bestD = d; best = r; }
+  }
+  return best;
+}
+cv.addEventListener('click', function(e){
+  if (G.over || G.dying) return;
+  if (view.scale !== 'web' || view.anim) return;
+  const rect = cv.getBoundingClientRect();
+  const r = pickRegion(e.clientX - rect.left, e.clientY - rect.top);
+  if (r){ G.selectedId = r.id; updateUI(); }
+});
+cv.addEventListener('dblclick', function(e){
+  if (G.over || G.dying) return;
+  if (view.scale !== 'web' || view.anim) return;
+  const rect = cv.getBoundingClientRect();
+  const r = pickRegion(e.clientX - rect.left, e.clientY - rect.top);
+  if (r){ G.selectedId = r.id; updateUI(); zoomTo('system'); }
+});
+cv.addEventListener('mousemove', function(e){
+  if (view.scale !== 'web' || view.anim){
+    G.hoverId = null;
+    cv.style.cursor = 'default';
+    return;
+  }
+  const rect = cv.getBoundingClientRect();
+  const r = pickRegion(e.clientX - rect.left, e.clientY - rect.top);
+  G.hoverId = r ? r.id : null;
+  cv.style.cursor = r ? 'pointer' : 'crosshair';
+});
+cv.addEventListener('mouseleave', function(){ G.hoverId = null; });
+
+/* ---------- Wiring & boot ---------- */
+function buildActionButtons(){
+  const wrap = document.getElementById('actions');
+  for (const act of ACTIONS){
+    const b = document.createElement('button');
+    b.className = 'abtn';
+    b.id = 'btn-' + act.id;
+    b.innerHTML = '<span class="an">' + act.name + '<span class="cost">' + act.cost + ' EG</span></span>' +
+                  '<span class="ad">' + act.desc + '</span>';
+    b.title = act.desc;
+    b.addEventListener('click', function(){ doAction(act); });
+    wrap.appendChild(b);
+  }
+}
+document.getElementById('endEon').addEventListener('click', endEon);
+document.getElementById('mContinue').addEventListener('click', continueSuccessor);
+document.getElementById('zoomBtn').addEventListener('click', function(){ zoomTo('system'); });
+document.getElementById('lifeBtn').addEventListener('click', function(){ zoomTo('life'); });
+document.getElementById('backBtn2').addEventListener('click', function(){
+  zoomTo(view.scale === 'life' ? 'system' : 'web');
+});
+document.getElementById('backBtn').addEventListener('click', function(){
+  zoomTo(view.scale === 'life' ? 'system' : 'web');
+});
+const nlBtn = document.getElementById('newLineage');
+nlBtn.addEventListener('click', function(){
+  if (!G.newLineageArmed){
+    G.newLineageArmed = true;
+    nlBtn.textContent = '✦ CONFIRM — ABANDON LINEAGE?';
+    setTimeout(function(){
+      G.newLineageArmed = false;
+      nlBtn.textContent = '✦ NEW LINEAGE';
+    }, 2600);
+  } else {
+    G.newLineageArmed = false;
+    nlBtn.textContent = '✦ NEW LINEAGE';
+    startNewLineage();
+  }
+});
+window.addEventListener('resize', resize);
+
+buildActionButtons();
+initDust();
+resize();
+startNewLineage();
+resize(); // nebula needs the universe; regions need canvas size
+
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  draw(now / 1000, dt);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
